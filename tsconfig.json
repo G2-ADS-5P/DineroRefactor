@@ -28,7 +28,8 @@
       "@class-offering/*": ["src/modules/class-offering/*"],
       "@enrollment/*": ["src/modules/enrollment/*"],
       "@users/*": ["src/modules/users/*"],
-      "@auth/*": ["src/modules/auth/*"]
+      "@auth/*": ["src/modules/auth/*"],
+      "@messaging/*": ["src/modules/messaging/*"]
     }
   }
 }

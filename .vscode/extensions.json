@@ -1,3 +1,7 @@
 {
-  "recommendations": ["biomejs.biome", "eliostruyf.vscode-demo-time"]
+  "recommendations": [
+    "biomejs.biome",
+    "eliostruyf.vscode-demo-time",
+    "MermaidChart.vscode-mermaid-chart"
+  ]
 }
