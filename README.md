@@ -1,84 +1,312 @@
-# School Control API
+# School Control Monorepo
 
-API REST para gestão escolar, construída com NestJS + Drizzle ORM + PostgreSQL.
+Projeto de estudo de microservicos para controle escolar, organizado como um monorepo com servicos NestJS independentes, bancos separados por contexto e comunicacao assincrona via RabbitMQ.
 
-## Pré-requisitos
+Cada micro-servico possui:
 
-- [Node.js](https://nodejs.org) >= 20
-- [npm](https://www.npmjs.com) >= 10
-- [PostgreSQL](https://www.postgresql.org) >= 14 rodando localmente (ou via Docker)
+- API HTTP com prefixo global `/v1`
+- documentacao Swagger em `/docs`
+- banco PostgreSQL proprio
+- integracao por eventos para manter projecoes locais entre contextos
+- autenticacao JWT e autorizacao por permissoes
 
-## Configuração
+## O que o projeto cobre
 
-### 1. Instalar dependências
+O dominio foi separado em cinco contextos:
 
-```bash
-npm install
-```
+| Micro-servico | Porta padrao | Banco padrao | Responsabilidade principal |
+| --- | --- | --- | --- |
+| `academic` | `4001` | `school_academic` | Gerenciar alunos, professores e disciplinas |
+| `class-offering` | `4002` | `school_class_offering` | Gerenciar ofertas de turma e seu status |
+| `enrollment` | `4003` | `school_enrollment` | Matricular alunos em turmas |
+| `attendance` | `4004` | `school_attendance` | Registrar e consultar presencas |
+| `user-auth` | `4005` | `school_user_auth` | Gerenciar usuarios, login, JWT e permissoes |
 
-### 2. Configurar variáveis de ambiente
+## Relacao entre os servicos
 
-Crie um arquivo `.env` na raiz do projeto com base no exemplo abaixo:
+| Micro-servico | Publica eventos | Consome eventos |
+| --- | --- | --- |
+| `academic` | `student.created/updated/deleted`, `teacher.created/updated/deleted`, `subject.created/updated/deleted` | Nenhum |
+| `class-offering` | `class-offering.created/updated/canceled` | Professores e disciplinas do `academic` |
+| `enrollment` | `enrollment.created/canceled` | Alunos do `academic` e turmas do `class-offering` |
+| `attendance` | `attendance.registered` | Alunos do `academic`, turmas do `class-offering` e matriculas do `enrollment` |
+| `user-auth` | Nenhum | Professores do `academic` |
+
+Como os servicos mantem projecoes locais a partir de eventos, o ideal e subir todos antes de comecar a cadastrar dados.
+
+## Pre-requisitos
+
+- Node.js com `npm`
+- PostgreSQL
+- RabbitMQ
+- Docker e Docker Compose
+
+Voce pode usar uma unica instancia do PostgreSQL, desde que crie cinco bancos:
+
+- `school_academic`
+- `school_class_offering`
+- `school_enrollment`
+- `school_attendance`
+- `school_user_auth`
+
+## Variaveis de ambiente
+
+Todos os servicos usam as mesmas quatro variaveis:
 
 ```env
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/school_control
-PORT=3001
+PORT=4001
+JWT_SECRET=super-secret
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/school_academic
+RABBITMQ_URL=amqp://admin:admin@localhost:5672
 ```
 
-| Variável | Descrição |
-|---|---|
-| `DATABASE_URL` | Connection string do PostgreSQL |
-| `PORT` | Porta em que a API vai subir |
+Observacoes importantes:
 
-### 3. Criar e migrar o banco de dados
+- O `JWT_SECRET` deve ser o mesmo em todos os servicos.
+- O `DATABASE_URL` muda de acordo com o banco de cada micro-servico.
+- O `PORT` muda de acordo com o servico.
+- Os arquivos de exemplo ja existem em `services/*/.env.example`.
 
-Com o PostgreSQL rodando, execute as migrações para criar as tabelas:
+## Como rodar
+
+### Com Docker Compose
+
+O jeito mais rapido de subir todo o ambiente e usar o `docker-compose.yml` da raiz. Ele sobe:
+
+- os 5 micro-servicos
+- 1 instancia do PostgreSQL com 5 bancos separados
+- 1 instancia do RabbitMQ
+- 1 instancia do Adminer
+
+Subir tudo com build:
 
 ```bash
+docker compose up --build
+```
+
+Subir em background:
+
+```bash
+docker compose up --build -d
+```
+
+Parar os containers sem remover volumes:
+
+```bash
+docker compose down
+```
+
+Parar e remover containers, rede e volumes:
+
+```bash
+docker compose down -v
+```
+
+Se quiser recriar as imagens do zero:
+
+```bash
+docker compose build --no-cache
+docker compose up -d
+```
+
+Endpoints uteis depois que o ambiente subir:
+
+- `academic`: `http://localhost:4001/docs`
+- `class-offering`: `http://localhost:4002/docs`
+- `enrollment`: `http://localhost:4003/docs`
+- `attendance`: `http://localhost:4004/docs`
+- `user-auth`: `http://localhost:4005/docs`
+- `Adminer`: `http://localhost:8080`
+- `RabbitMQ Management`: `http://localhost:15672`
+
+Credenciais padrao:
+
+- PostgreSQL: usuario `postgres`, senha `postgres`
+- RabbitMQ: usuario `admin`, senha `admin`
+- Usuario admin seedado no `user-auth`: email `admin@school.com`, senha `senha123`
+
+No Adminer, use:
+
+- Sistema: `PostgreSQL`
+- Servidor: `postgres`
+- Usuario: `postgres`
+- Senha: `postgres`
+- Base de dados: uma das bases do projeto, como `school_academic`
+
+Observacao:
+
+- O script de criacao dos bancos roda na inicializacao do Postgres. Se voce ja tiver um volume antigo sem os bancos criados, rode `docker compose down -v` antes de subir novamente.
+- A seed do `user-auth` e aplicada na criacao inicial do banco. Se voce quiser garantir o usuario padrao `admin@school.com` com senha `admin123`, recrie o ambiente com `docker compose down -v` e depois suba novamente.
+
+### Rodando manualmente
+
+Fluxo recomendado:
+
+1. Inicie PostgreSQL e RabbitMQ.
+2. Copie o `.env.example` para `.env` em cada servico.
+3. Instale as dependencias de cada servico com `npm install`.
+4. Rode as migrations de cada banco com `npm run db:migrate`.
+5. Suba os servicos com `npm run start:dev`.
+
+## Como rodar cada micro-servico
+
+### `academic`
+
+Responsabilidade:
+Gerencia os cadastros base do sistema: alunos, professores e disciplinas.
+
+Principais rotas:
+- `GET/POST /v1/students`
+- `GET/PUT/DELETE /v1/students/:id`
+- `GET/POST /v1/teachers`
+- `GET/PUT/DELETE /v1/teachers/:id`
+- `GET/POST /v1/subjects`
+- `GET/PUT/DELETE /v1/subjects/:id`
+
+Comandos:
+
+```bash
+cd services/academic
+cp .env.example .env
+npm install
 npm run db:migrate
-```
-
-## Rodando a aplicação
-
-### Desenvolvimento (com hot reload)
-
-```bash
 npm run start:dev
 ```
 
-### Produção
+Swagger:
+`http://localhost:4001/docs`
+
+### `class-offering`
+
+Responsabilidade:
+Gerencia turmas ofertadas, vinculando professores e disciplinas que chegam do `academic`.
+
+Principais rotas:
+- `GET/POST /v1/classOfferings`
+- `GET /v1/classOfferings/:id`
+- `PATCH /v1/classOfferings/:id/activate`
+- `PATCH /v1/classOfferings/:id/deactivate`
+
+Comandos:
 
 ```bash
-npm run build
-npm run start:prod
+cd services/class-offering
+cp .env.example .env
+npm install
+npm run db:migrate
+npm run start:dev
 ```
 
-A API ficará disponível em `http://localhost:3001` (ou na porta configurada em `PORT`).
+Swagger:
+`http://localhost:4002/docs`
 
-## Scripts disponíveis
+### `enrollment`
 
-| Script | Descrição |
-|---|---|
-| `npm run start:dev` | Inicia em modo desenvolvimento com hot reload |
-| `npm run start` | Inicia sem hot reload |
-| `npm run start:prod` | Inicia o build de produção |
-| `npm run build` | Gera o build de produção em `dist/` |
-| `npm run db:generate` | Gera arquivos de migration a partir dos schemas |
-| `npm run db:migrate` | Aplica as migrations no banco |
-| `npm run db:push` | Sincroniza o schema diretamente no banco (sem migration) |
-| `npm run db:studio` | Abre o Drizzle Studio para inspecionar o banco visualmente |
-| `npm run lint` | Executa o linter (Biome) |
-| `npm run check` | Executa lint + formatação (Biome) |
+Responsabilidade:
+Gerencia matriculas de alunos em turmas, usando projecoes locais de alunos e ofertas de turma.
 
-## Subindo o PostgreSQL com Docker
+Principais rotas:
+- `GET /v1/enrollments?class_offering_id=<id>`
+- `POST /v1/enrollments`
+- `PATCH /v1/enrollments/:id/cancel`
 
-Caso não tenha o PostgreSQL instalado localmente, suba uma instância com Docker:
+Comandos:
 
 ```bash
-docker run --name school-db \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=school_control \
-  -p 5432:5432 \
-  -d postgres:16
+cd services/enrollment
+cp .env.example .env
+npm install
+npm run db:migrate
+npm run start:dev
 ```
+
+Swagger:
+`http://localhost:4003/docs`
+
+### `attendance`
+
+Responsabilidade:
+Registra e consulta presencas com base nas projecoes de alunos, turmas e matriculas.
+
+Principais rotas:
+- `GET /v1/attendances?class_offering_id=<id>`
+- `GET /v1/attendances?class_offering_id=<id>&student_id=<id>`
+- `POST /v1/attendances`
+
+Comandos:
+
+```bash
+cd services/attendance
+cp .env.example .env
+npm install
+npm run db:migrate
+npm run start:dev
+```
+
+Swagger:
+`http://localhost:4004/docs`
+
+### `user-auth`
+
+Responsabilidade:
+Gerencia usuarios, autentica login, emite JWT e aplica autorizacao por permissoes. Tambem consome eventos de professores para manter o relacionamento entre usuario e docente.
+
+Principais rotas:
+- `POST /v1/auth/login`
+- `GET/POST /v1/users`
+- `GET/PUT/DELETE /v1/users/:id`
+
+Comandos:
+
+```bash
+cd services/user-auth
+cp .env.example .env
+npm install
+npm run db:migrate
+npm run start:dev
+```
+
+Swagger:
+`http://localhost:4005/docs`
+
+## Atalhos a partir da raiz
+
+Depois que as dependencias de cada servico estiverem instaladas, voce tambem pode subir os processos a partir da raiz do monorepo:
+
+```bash
+npm run start:academic
+npm run start:class-offering
+npm run start:enrollment
+npm run start:attendance
+npm run start:user-auth
+```
+
+## Autenticacao e permissoes
+
+- O login e feito em `POST /v1/auth/login`.
+- O token JWT emitido pelo `user-auth` deve ser enviado como `Bearer Token` nos demais servicos.
+- As permissoes usadas no projeto seguem o formato `recurso:acao`, por exemplo:
+  - `students:read`
+  - `students:write`
+  - `teachers:read`
+  - `class-offerings:write`
+  - `enrollments:delete`
+  - `attendances:write`
+
+## Ordem sugerida para testes integrados
+
+Se a ideia for testar o fluxo completo do dominio, esta ordem ajuda:
+
+1. `user-auth`
+2. `academic`
+3. `class-offering`
+4. `enrollment`
+5. `attendance`
+
+Fluxo de negocio esperado:
+
+1. Cadastrar professores, disciplinas e alunos no `academic`
+2. Criar turmas no `class-offering`
+3. Matricular alunos no `enrollment`
+4. Registrar presencas no `attendance`
+5. Autenticar e testar autorizacao pelo `user-auth`
