@@ -1,0 +1,15 @@
+name: Enforce Dev to Main
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-source-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar origem do PR
+        if: github.head_ref != 'dev'
+        run: |
+          echo "Erro: Pull Requests para a branch 'main' devem vir exclusivamente da branch 'dev'."
+          exit 1
