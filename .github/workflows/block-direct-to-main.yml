@@ -1,15 +1,21 @@
-name: Enforce Dev to Main
+name: Enforce dev -> main PRs
+
 on:
   pull_request:
     branches:
       - main
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
 
 jobs:
-  check-source-branch:
+  enforce-source-branch:
     runs-on: ubuntu-latest
     steps:
-      - name: Validar origem do PR
-        if: github.head_ref != 'dev'
+      - name: Fail if PR is not from dev
+        if: github.event.pull_request.head.ref != 'dev'
         run: |
-          echo "Erro: Pull Requests para a branch 'main' devem vir exclusivamente da branch 'dev'."
+          echo "Erro: PRs para 'main' devem vir exclusivamente da branch 'dev'."
+          echo "Branch atual: ${{ github.event.pull_request.head.ref }}"
           exit 1
