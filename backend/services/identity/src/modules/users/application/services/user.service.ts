@@ -14,6 +14,7 @@ import {
   USER_REPOSITORY,
   type UserRepository,
 } from "@users/domain/repositories/user-repository.interface";
+import { UserMessagingService } from "@users/application/services/user-messaging.service";
 import bcrypt from "bcryptjs";
 
 @Injectable()
@@ -21,6 +22,7 @@ export class UserService {
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly userRepository: UserRepository,
+    private readonly userMessagingService: UserMessagingService,
   ) {}
 
   async create(dto: CreateUserDto): Promise<UserResponseDto> {
@@ -41,7 +43,9 @@ export class UserService {
     await this.userRepository.create(user);
 
     const created = await this.userRepository.findByEmail(email);
-    return UserResponseDto.from(created)!;
+    const response = UserResponseDto.from(created)!;
+    await this.userMessagingService.publishUserCreated(response);
+    return response;
   }
 
   async edit(id: string, dto: UpdateUserDto): Promise<UserResponseDto> {
@@ -56,7 +60,9 @@ export class UserService {
     await this.userRepository.update(user);
 
     const updated = await this.userRepository.findById(id);
-    return UserResponseDto.from(updated)!;
+    const response = UserResponseDto.from(updated)!;
+    await this.userMessagingService.publishUserUpdated(response);
+    return response;
   }
 
   async remove(id: string): Promise<UserResponseDto> {
@@ -65,6 +71,7 @@ export class UserService {
 
     const response = UserResponseDto.from(user)!;
     await this.userRepository.delete(id);
+    await this.userMessagingService.publishUserDeleted(response);
     return response;
   }
 
