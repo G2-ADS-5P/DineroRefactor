@@ -1,9 +1,11 @@
 import {
   ConflictException,
+  forwardRef,
   Inject,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import { PreferenceService } from "@preferences/application/services/preference.service";
 import type { PaginatedResult, PaginationParams } from "@shared/infra/hateoas";
 import { CreateUserDto } from "@users/application/dto/create-user.dto";
 import { UpdateUserDto } from "@users/application/dto/update-user.dto";
@@ -23,6 +25,8 @@ export class UserService {
     @Inject(USER_REPOSITORY)
     private readonly userRepository: UserRepository,
     private readonly userMessagingService: UserMessagingService,
+    @Inject(forwardRef(() => PreferenceService))
+    private readonly preferenceService: PreferenceService,
   ) {}
 
   async create(dto: CreateUserDto): Promise<UserResponseDto> {
@@ -44,6 +48,7 @@ export class UserService {
 
     const created = await this.userRepository.findByEmail(email);
     const response = UserResponseDto.from(created)!;
+    await this.preferenceService.createDefault(response.id);
     await this.userMessagingService.publishUserCreated(response);
     return response;
   }
