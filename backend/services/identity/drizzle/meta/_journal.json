@@ -15,6 +15,13 @@
       "when": 1778718524552,
       "tag": "0001_thin_lionheart",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778968861979,
+      "tag": "0002_seed_admin",
+      "breakpoints": true
     }
   ]
 }
