@@ -17,4 +17,3 @@ import { DrizzlePreferenceRepository } from "@preferences/infra/repositories/dri
   exports: [PreferenceService],
 })
 export class PreferencesModule {}
-

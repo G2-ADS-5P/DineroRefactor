@@ -11,12 +11,12 @@ import { CreateUserDto } from "@users/application/dto/create-user.dto";
 import { UpdateUserDto } from "@users/application/dto/update-user.dto";
 import { UserPayload } from "@users/application/dto/user-payload.interface";
 import { UserResponseDto } from "@users/application/dto/user-response.dto";
+import { UserMessagingService } from "@users/application/services/user-messaging.service";
 import { User } from "@users/domain/models/user.entity";
 import {
   USER_REPOSITORY,
   type UserRepository,
 } from "@users/domain/repositories/user-repository.interface";
-import { UserMessagingService } from "@users/application/services/user-messaging.service";
 import bcrypt from "bcryptjs";
 
 @Injectable()

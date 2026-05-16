@@ -19,9 +19,9 @@ import {
   ApiQuery,
   ApiTags,
 } from "@nestjs/swagger";
+import type { AuthenticatedUser } from "@shared/infra/auth/interfaces/authenticated-user.interface";
 import { CurrentUser } from "@shared/infra/decorators/current-user.decorator";
 import { HateoasItem, HateoasList } from "@shared/infra/hateoas";
-import type { AuthenticatedUser } from "@shared/infra/auth/interfaces/authenticated-user.interface";
 import { UpdateUserDto } from "@users/application/dto/update-user.dto";
 import { UserResponseDto } from "@users/application/dto/user-response.dto";
 import { UserService } from "@users/application/services/user.service";

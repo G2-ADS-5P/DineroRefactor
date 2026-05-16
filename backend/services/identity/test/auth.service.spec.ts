@@ -1,7 +1,7 @@
+import { AuthService } from "@auth/application/services/auth.service";
 import { UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Test } from "@nestjs/testing";
-import { AuthService } from "@auth/application/services/auth.service";
 import { UserService } from "@users/application/services/user.service";
 
 describe("AuthService", () => {

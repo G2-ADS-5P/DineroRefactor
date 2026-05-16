@@ -2,8 +2,8 @@ import { ConflictException, NotFoundException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { PreferenceService } from "@preferences/application/services/preference.service";
 import { CreateUserDto } from "@users/application/dto/create-user.dto";
-import { UserMessagingService } from "@users/application/services/user-messaging.service";
 import { UserService } from "@users/application/services/user.service";
+import { UserMessagingService } from "@users/application/services/user-messaging.service";
 import { User } from "@users/domain/models/user.entity";
 import {
   USER_REPOSITORY,
@@ -179,10 +179,7 @@ describe("UserService", () => {
 
   it("returns null when user does not exist", async () => {
     userRepository.findByEmail.mockResolvedValueOnce(null);
-    const result = await service.validateCredentials(
-      "ghost@dinero.app",
-      "any",
-    );
+    const result = await service.validateCredentials("ghost@dinero.app", "any");
     expect(result).toBeNull();
   });
 });
