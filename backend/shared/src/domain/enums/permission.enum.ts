@@ -23,6 +23,10 @@ export enum Permission {
   ATTENDANCES_WRITE = "attendances:write",
   ATTENDANCES_DELETE = "attendances:delete",
 
+  PORTFOLIO_READ = "portfolio:read",
+  PORTFOLIO_WRITE = "portfolio:write",
+  PORTFOLIO_DELETE = "portfolio:delete",
+
   USERS_READ = "users:read",
   USERS_WRITE = "users:write",
   USERS_DELETE = "users:delete",
