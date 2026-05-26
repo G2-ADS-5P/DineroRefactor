@@ -61,6 +61,7 @@ export class OpenfinanceService {
   async initiateBankConnection(dto: {
     userId: string;
     bankName: string;
+    institutionId?: string;
   }): Promise<CreateBankConnectionResponseDto> {
     const consentId = randomUUID();
 
@@ -88,9 +89,10 @@ export class OpenfinanceService {
     }
 
     const port = this.configService.get<string>("PORT") ?? "4006";
+    const institutionParam = dto.institutionId ? `&institutionId=${dto.institutionId}` : "";
     const consentUrl =
       `https://sandbox.openfinance.example.com/consent/${consentId}` +
-      `?redirect_uri=http://localhost:${port}/v1/bank-connections/${created.id}/authorize`;
+      `?redirect_uri=http://localhost:${port}/v1/bank-connections/${created.id}/authorize${institutionParam}`;
 
     return new CreateBankConnectionResponseDto({
       id: created.id,
@@ -104,6 +106,7 @@ export class OpenfinanceService {
     id: string,
     userId: string,
     itemId?: string,
+    institutionId?: string,
   ): Promise<BankConnectionDto> {
     const bankConnection = await this.bankConnectionRepository.findById(id);
 
@@ -126,7 +129,7 @@ export class OpenfinanceService {
       await this.syncPluggyData(id, itemId);
     } else {
       await this.bankConnectionRepository.activate(id);
-      await this.sandboxDataService.generateForConnection(id);
+      await this.sandboxDataService.generateForConnection(id, institutionId);
     }
 
     bankConnection.withStatus(BankConnectionStatus.ACTIVE);

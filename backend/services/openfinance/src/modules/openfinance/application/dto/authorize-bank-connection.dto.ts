@@ -13,4 +13,14 @@ export class AuthorizeBankConnectionDto {
   @IsString()
   @IsUUID()
   itemId?: string;
+
+  @ApiPropertyOptional({
+    example: "nubank",
+    description:
+      "[Sandbox] ID da instituição (retornado por GET /institutions). " +
+      "Quando informado, os dados mock gerados refletem o perfil real do banco (descrições, bandeiras de cartão, faixas de saldo).",
+  })
+  @IsOptional()
+  @IsString()
+  institutionId?: string;
 }

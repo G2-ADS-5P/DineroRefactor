@@ -16,10 +16,15 @@ import {
   CARD_REPOSITORY,
   type CardRepository,
 } from "@openfinance/domain/repositories/card-repository.interface";
+import {
+  SANDBOX_INSTITUTIONS,
+  findInstitutionById,
+  type SandboxInstitution,
+} from "@openfinance/application/data/sandbox-institutions";
 import { Inject, Injectable } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
 
-const DEBIT_DESCRIPTIONS: { description: string; category: string }[] = [
+const FALLBACK_DEBIT_DESCRIPTIONS: { description: string; category: string }[] = [
   { description: "Compra débito - Supermercado Extra", category: "Alimentação" },
   { description: "Compra débito - Posto Shell", category: "Transporte" },
   { description: "PIX enviado - João Silva", category: "Transferência" },
@@ -30,23 +35,16 @@ const DEBIT_DESCRIPTIONS: { description: string; category: string }[] = [
   { description: "Pagamento boleto - Internet Vivo", category: "Moradia" },
   { description: "Compra débito - Shopee", category: "Compras" },
   { description: "Saque ATM", category: "Saque" },
-  { description: "Compra débito - Posto BR", category: "Transporte" },
-  { description: "Pagamento fatura cartão", category: "Cartão de crédito" },
-  { description: "Compra débito - Americanas", category: "Compras" },
-  { description: "Uber", category: "Transporte" },
-  { description: "Pagamento boleto - Condomínio", category: "Moradia" },
 ];
 
-const CREDIT_DESCRIPTIONS: { description: string; category: string }[] = [
-  { description: "PIX recebido - Empresa Ltda", category: "Salário" },
+const FALLBACK_CREDIT_DESCRIPTIONS: { description: string; category: string }[] = [
   { description: "Salário - Depósito em conta", category: "Salário" },
   { description: "PIX recebido - Lucas Oliveira", category: "Transferência" },
   { description: "TED recebida - Reembolso despesas", category: "Reembolso" },
   { description: "Rendimento poupança", category: "Rendimento" },
-  { description: "Estorno - Supermercado Extra", category: "Estorno" },
 ];
 
-const CARD_BRANDS: CardBrand[] = ["Visa", "Mastercard", "Elo", "Hipercard"];
+const FALLBACK_CARD_BRANDS: CardBrand[] = ["Visa", "Mastercard", "Elo", "Hipercard"];
 const DUE_DAYS = ["5", "10", "15", "20", "25"];
 
 function randomBetween(min: number, max: number): number {
@@ -78,15 +76,22 @@ export class SandboxDataService {
     private readonly cardRepository: CardRepository,
   ) {}
 
-  async generateForConnection(bankConnectionId: string): Promise<void> {
-    const accounts = await this.generateAccounts(bankConnectionId);
-    await this.generateTransactions(accounts);
-    await this.generateCards(bankConnectionId);
+  async generateForConnection(bankConnectionId: string, institutionId?: string): Promise<void> {
+    const institution = institutionId
+      ? findInstitutionById(institutionId)
+      : randomItem(SANDBOX_INSTITUTIONS);
+
+    const accounts = await this.generateAccounts(bankConnectionId, institution);
+    await this.generateTransactions(accounts, institution);
+    await this.generateCards(bankConnectionId, institution);
   }
 
-  private async generateAccounts(bankConnectionId: string): Promise<Account[]> {
-    const checkingBalance = randomBetween(500, 15000);
-    const savingsBalance = randomBetween(100, 50000);
+  private async generateAccounts(
+    bankConnectionId: string,
+    institution?: SandboxInstitution,
+  ): Promise<Account[]> {
+    const [checkMin, checkMax] = institution?.checkingBalanceRange ?? [500, 15000];
+    const [saveMin, saveMax] = institution?.savingsBalanceRange ?? [100, 50000];
 
     const accounts = [
       Account.restore({
@@ -94,7 +99,7 @@ export class SandboxDataService {
         externalId: randomUUID(),
         accountType: AccountType.CHECKING,
         accountNumber: `****${randomDigits(4)}`,
-        balance: checkingBalance,
+        balance: randomBetween(checkMin, checkMax),
         currency: "BRL",
       }),
       Account.restore({
@@ -102,7 +107,7 @@ export class SandboxDataService {
         externalId: randomUUID(),
         accountType: AccountType.SAVINGS,
         accountNumber: `****${randomDigits(4)}`,
-        balance: savingsBalance,
+        balance: randomBetween(saveMin, saveMax),
         currency: "BRL",
       }),
     ];
@@ -110,18 +115,22 @@ export class SandboxDataService {
     return this.accountRepository.createMany(accounts);
   }
 
-  private async generateTransactions(accounts: Account[]): Promise<void> {
+  private async generateTransactions(
+    accounts: Account[],
+    institution?: SandboxInstitution,
+  ): Promise<void> {
+    const debitPool = institution?.debitDescriptions ?? FALLBACK_DEBIT_DESCRIPTIONS;
+    const creditPool = institution?.creditDescriptions ?? FALLBACK_CREDIT_DESCRIPTIONS;
+
     for (const account of accounts) {
       if (!account.id) continue;
 
-      const count = Math.floor(Math.random() * 10) + 10; // 10–20 transactions
+      const count = Math.floor(Math.random() * 10) + 10;
       const transactions: BankStatementTransaction[] = [];
 
       for (let i = 0; i < count; i++) {
         const isCredit = Math.random() < 0.25;
-        const source = isCredit
-          ? randomItem(CREDIT_DESCRIPTIONS)
-          : randomItem(DEBIT_DESCRIPTIONS);
+        const source = isCredit ? randomItem(creditPool) : randomItem(debitPool);
 
         transactions.push(
           BankStatementTransaction.restore({
@@ -139,19 +148,24 @@ export class SandboxDataService {
     }
   }
 
-  private async generateCards(bankConnectionId: string): Promise<void> {
+  private async generateCards(
+    bankConnectionId: string,
+    institution?: SandboxInstitution,
+  ): Promise<void> {
     const cardCount = Math.random() < 0.4 ? 2 : 1;
+    const [limitMin, limitMax] = institution?.cardLimitRange ?? [1000, 15000];
+    const brandPool = (institution?.cardBrands as CardBrand[] | undefined) ?? FALLBACK_CARD_BRANDS;
     const cards: Card[] = [];
 
     for (let i = 0; i < cardCount; i++) {
-      const limit = randomBetween(1000, 15000);
+      const limit = randomBetween(limitMin, limitMax);
       const bill = randomBetween(0, limit * 0.7);
 
       cards.push(
         Card.restore({
           bankConnectionId,
           lastFourDigits: randomDigits(4),
-          cardBrand: randomItem(CARD_BRANDS),
+          cardBrand: randomItem(brandPool),
           cardLimit: limit,
           availableLimit: Math.round((limit - bill) * 100) / 100,
           currentBill: bill,

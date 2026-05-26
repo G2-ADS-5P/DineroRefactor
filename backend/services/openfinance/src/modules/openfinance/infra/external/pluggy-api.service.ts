@@ -3,6 +3,19 @@ import { ConfigService } from "@nestjs/config";
 
 const PLUGGY_BASE_URL = "https://api.pluggy.ai";
 
+export type PluggyConnector = {
+  id: number;
+  name: string;
+  primaryColor: string;
+  institutionUrl: string;
+  country: string;
+  type: "PERSONAL_BANK" | "BUSINESS_BANK" | "INVESTMENT" | string;
+  credentials: unknown[];
+  hasMFA: boolean;
+  imageUrl: string | null;
+  isSandbox: boolean;
+};
+
 type PluggyAccount = {
   id: string;
   itemId: string;
@@ -51,6 +64,16 @@ export class PluggyApiService {
       !!this.configService.get<string>("PLUGGY_CLIENT_ID") &&
       !!this.configService.get<string>("PLUGGY_CLIENT_SECRET")
     );
+  }
+
+  async getConnectors(sandboxOnly = false): Promise<PluggyConnector[]> {
+    const apiKey = await this.getApiKey();
+    const query = sandboxOnly ? "?sandbox=true" : "";
+    const response = await this.get<{ results: PluggyConnector[] }>(
+      `/connectors${query}`,
+      apiKey,
+    );
+    return response.results;
   }
 
   async getConnectToken(opts?: {

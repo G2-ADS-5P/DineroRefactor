@@ -9,6 +9,7 @@ import { CARD_REPOSITORY } from "@openfinance/domain/repositories/card-repositor
 import { BankConnectionsController } from "@openfinance/infra/controllers/bank-connections.controller";
 import { AccountsController } from "@openfinance/infra/controllers/accounts.controller";
 import { PluggyWebhookController } from "@openfinance/infra/controllers/pluggy-webhook.controller";
+import { InstitutionsController } from "@openfinance/infra/controllers/institutions.controller";
 import { DrizzleBankConnectionRepository } from "@openfinance/infra/repositories/drizzle-bank-connection.repository";
 import { DrizzleAccountRepository } from "@openfinance/infra/repositories/drizzle-account.repository";
 import { DrizzleBankStatementTransactionRepository } from "@openfinance/infra/repositories/drizzle-bank-statement-transaction.repository";
@@ -16,7 +17,7 @@ import { DrizzleCardRepository } from "@openfinance/infra/repositories/drizzle-c
 import { Module } from "@nestjs/common";
 
 @Module({
-  controllers: [BankConnectionsController, AccountsController, PluggyWebhookController],
+  controllers: [BankConnectionsController, AccountsController, PluggyWebhookController, InstitutionsController],
   providers: [
     OpenfinanceMessagingService,
     SandboxDataService,

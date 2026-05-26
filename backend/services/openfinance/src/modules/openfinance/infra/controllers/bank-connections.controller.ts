@@ -47,6 +47,7 @@ export class BankConnectionsController {
     return this.openfinanceService.initiateBankConnection({
       userId: user.sub,
       bankName: body.bankName,
+      institutionId: body.institutionId,
     });
   }
 
@@ -65,7 +66,7 @@ export class BankConnectionsController {
     @Body() body: AuthorizeBankConnectionDto,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<BankConnectionDto> {
-    return this.openfinanceService.authorizeConnection(id, user.sub, body.itemId);
+    return this.openfinanceService.authorizeConnection(id, user.sub, body.itemId, body.institutionId);
   }
 
   @Get()
