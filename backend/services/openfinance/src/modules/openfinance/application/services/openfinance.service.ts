@@ -3,6 +3,7 @@ import { BankConnectionDto } from "@openfinance/application/dto/bank-connection.
 import { BankStatementTransactionDto } from "@openfinance/application/dto/bank-statement-transaction.dto";
 import { CardDto } from "@openfinance/application/dto/card.dto";
 import { CreateBankConnectionResponseDto } from "@openfinance/application/dto/create-bank-connection-response.dto";
+import type { PaginatedResult } from "@shared/infra/hateoas";
 import { OpenfinanceMessagingService } from "@openfinance/application/services/openfinance-messaging.service";
 import { SandboxDataService } from "@openfinance/application/services/sandbox-data.service";
 import {
@@ -209,10 +210,11 @@ export class OpenfinanceService {
     }
   }
 
-  async listBankConnections(userId: string): Promise<BankConnectionDto[]> {
+  async listBankConnections(userId: string): Promise<PaginatedResult<BankConnectionDto>> {
     const connections =
       await this.bankConnectionRepository.findAllByUserId(userId);
-    return connections.map((c) => BankConnectionDto.from(c)!);
+    const data = connections.map((c) => BankConnectionDto.from(c)!);
+    return { data, total: data.length, page: 1, limit: data.length || 1 };
   }
 
   async revokeBankConnection(id: string, userId: string): Promise<void> {
@@ -238,7 +240,7 @@ export class OpenfinanceService {
   async getAccountsByConnection(
     connectionId: string,
     userId: string,
-  ): Promise<AccountDto[]> {
+  ): Promise<PaginatedResult<AccountDto>> {
     const connection =
       await this.bankConnectionRepository.findById(connectionId);
 
@@ -248,13 +250,14 @@ export class OpenfinanceService {
 
     const accounts =
       await this.accountRepository.findAllByConnectionId(connectionId);
-    return accounts.map((a) => AccountDto.from(a)!);
+    const data = accounts.map((a) => AccountDto.from(a)!);
+    return { data, total: data.length, page: 1, limit: data.length || 1 };
   }
 
   async getTransactionsByAccount(
     accountId: string,
     userId: string,
-  ): Promise<BankStatementTransactionDto[]> {
+  ): Promise<PaginatedResult<BankStatementTransactionDto>> {
     const account = await this.accountRepository.findById(accountId);
 
     if (!account) {
@@ -271,7 +274,8 @@ export class OpenfinanceService {
 
     const transactions =
       await this.transactionRepository.findAllByAccountId(accountId);
-    return transactions.map((t) => BankStatementTransactionDto.from(t)!);
+    const data = transactions.map((t) => BankStatementTransactionDto.from(t)!);
+    return { data, total: data.length, page: 1, limit: data.length || 1 };
   }
 
   // Called by the Pluggy webhook when item/created or item/updated arrives
@@ -293,7 +297,7 @@ export class OpenfinanceService {
   async getCardsByConnection(
     connectionId: string,
     userId: string,
-  ): Promise<CardDto[]> {
+  ): Promise<PaginatedResult<CardDto>> {
     const connection =
       await this.bankConnectionRepository.findById(connectionId);
 
@@ -303,6 +307,7 @@ export class OpenfinanceService {
 
     const cards =
       await this.cardRepository.findAllByConnectionId(connectionId);
-    return cards.map((c) => CardDto.from(c)!);
+    const data = cards.map((c) => CardDto.from(c)!);
+    return { data, total: data.length, page: 1, limit: data.length || 1 };
   }
 }
