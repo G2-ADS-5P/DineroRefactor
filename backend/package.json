@@ -30,7 +30,12 @@
     "start:academic": "npm run start:dev --prefix services/academic",
     "start:attendance": "npm run start:dev --prefix services/attendance",
     "start:class-offering": "npm run start:dev --prefix services/class-offering",
-    "start:enrollment": "npm run start:dev --prefix services/enrollment"
+    "start:enrollment": "npm run start:dev --prefix services/enrollment",
+    "start:financial": "npm run start --prefix services/financial",
+    "start:financial:dev": "npm run start:dev --prefix services/financial",
+    "typecheck:financial": "npm run typecheck --prefix services/financial",
+    "check:financial": "npm run check --prefix services/financial",
+    "test:financial": "npm test --prefix services/financial"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
