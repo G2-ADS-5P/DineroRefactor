@@ -157,6 +157,39 @@ services:
       - "4006:4006"
     command: sh -c "npm run db:migrate && npm run start:prod"
 
+  portfolio:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_NAME: portfolio
+    environment:
+      PORT: 4007
+      JWT_SECRET: super-secret
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/dinero_portfolio
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      BRAPI_TOKEN: 3PH6EMu5D4bL6hZ5d9q6we
+    ports:
+      - "4007:4007"
+    command: sh -c "npm run db:migrate && npm run start:prod"
+
+  identity:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_NAME: identity
+    environment:
+      PORT: 4008
+      JWT_SECRET: super-secret
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/dinero_identity
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+    ports:
+      - "4008:4008"
+    command: sh -c "npm run db:migrate && npm run start:prod"
+
 volumes:
   postgres_data:
   rabbitmq_data:
