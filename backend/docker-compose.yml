@@ -141,6 +141,22 @@ services:
       - "4005:4005"
     command: sh -c "npm run db:migrate && npm run start:prod"
 
+  openfinance:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_NAME: openfinance
+    environment:
+      PORT: 4006
+      JWT_SECRET: super-secret
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/school_openfinance
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+    ports:
+      - "4006:4006"
+    command: sh -c "npm run db:migrate && npm run start:prod"
+
   portfolio:
     <<: *service-defaults
     build:
@@ -166,12 +182,12 @@ services:
       args:
         SERVICE_NAME: identity
     environment:
-      PORT: 4006
+      PORT: 4008
       JWT_SECRET: super-secret
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/dinero_identity
       RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
     ports:
-      - "4006:4006"
+      - "4008:4008"
     command: sh -c "npm run db:migrate && npm run start:prod"
 
 volumes:
