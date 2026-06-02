@@ -29,6 +29,9 @@ VALUES (
     'attendances:read',
     'attendances:write',
     'attendances:delete',
+    'portfolio:read',
+    'portfolio:write',
+    'portfolio:delete',
     'users:read',
     'users:write',
     'users:delete'
