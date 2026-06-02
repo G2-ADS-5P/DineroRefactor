@@ -37,3 +37,8 @@ SELECT 'CREATE DATABASE dinero_identity'
 WHERE NOT EXISTS (
   SELECT FROM pg_database WHERE datname = 'dinero_identity'
 )\gexec
+
+SELECT 'CREATE DATABASE dinero_financial'
+WHERE NOT EXISTS (
+  SELECT FROM pg_database WHERE datname = 'dinero_financial'
+)\gexec

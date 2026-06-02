@@ -190,6 +190,23 @@ services:
       - "4008:4008"
     command: sh -c "npm run db:migrate && npm run start:prod"
 
+  financial:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_NAME: financial
+    environment:
+      PORT: 4009
+      JWT_SECRET: super-secret
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/dinero_financial
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+    ports:
+      - "4009:4009"
+    command: sh -c "npm run db:migrate && npm run start:prod"
+
+
 volumes:
   postgres_data:
   rabbitmq_data:
