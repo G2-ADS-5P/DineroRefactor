@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "../..",
+    "paths": {
+      "@shared/*": ["../../shared/src/*"],
+      "@users/*": ["./src/modules/users/*"],
+      "@categories/*": ["./src/modules/categories/*"],
+      "@cards/*": ["./src/modules/cards/*"],
+      "@transactions/*": ["./src/modules/transactions/*"],
+      "@balance/*": ["./src/modules/balance/*"],
+      "@reconciliation/*": ["./src/modules/reconciliation/*"],
+      "@sync/*": ["./src/modules/sync/*"]
+    }
+  },
+  "include": ["./src/**/*.ts", "../../shared/src/**/*.ts"]
+}
