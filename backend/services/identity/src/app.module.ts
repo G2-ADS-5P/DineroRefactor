@@ -3,6 +3,7 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { PreferencesModule } from "@preferences/preferences.module";
 import { SharedModule } from "@shared/shared.module";
+import { SubscriptionsModule } from "@subscriptions/subscriptions.module";
 import { UsersModule } from "@users/users.module";
 
 @Module({
@@ -12,6 +13,7 @@ import { UsersModule } from "@users/users.module";
     UsersModule,
     AuthModule,
     PreferencesModule,
+    SubscriptionsModule,
   ],
 })
 export class AppModule {}
