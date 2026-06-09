@@ -1,6 +1,7 @@
 import { ConflictException, NotFoundException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { PreferenceService } from "@preferences/application/services/preference.service";
+import { SubscriptionService } from "@subscriptions/application/services/subscription.service";
 import { CreateUserDto } from "@users/application/dto/create-user.dto";
 import { UserService } from "@users/application/services/user.service";
 import { UserMessagingService } from "@users/application/services/user-messaging.service";
@@ -16,6 +17,7 @@ describe("UserService", () => {
   let userRepository: jest.Mocked<UserRepository>;
   let messaging: jest.Mocked<UserMessagingService>;
   let preferences: jest.Mocked<PreferenceService>;
+  let subscriptions: jest.Mocked<SubscriptionService>;
 
   beforeEach(async () => {
     userRepository = {
@@ -41,12 +43,21 @@ describe("UserService", () => {
       updateCurrency: jest.fn(),
     } as unknown as jest.Mocked<PreferenceService>;
 
+    subscriptions = {
+      startTrial: jest.fn(),
+      activatePlan: jest.fn(),
+      cancelPlan: jest.fn(),
+      expireOldTrials: jest.fn(),
+      findByUserId: jest.fn(),
+    } as unknown as jest.Mocked<SubscriptionService>;
+
     const moduleRef = await Test.createTestingModule({
       providers: [
         UserService,
         { provide: USER_REPOSITORY, useValue: userRepository },
         { provide: UserMessagingService, useValue: messaging },
         { provide: PreferenceService, useValue: preferences },
+        { provide: SubscriptionService, useValue: subscriptions },
       ],
     }).compile();
 

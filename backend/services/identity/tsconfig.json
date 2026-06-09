@@ -7,7 +7,8 @@
       "@shared/*": ["../../shared/src/*"],
       "@users/*": ["./src/modules/users/*"],
       "@auth/*": ["./src/modules/auth/*"],
-      "@preferences/*": ["./src/modules/preferences/*"]
+      "@preferences/*": ["./src/modules/preferences/*"],
+      "@subscriptions/*": ["./src/modules/subscriptions/*"]
     }
   },
   "include": ["./src/**/*.ts", "../../shared/src/**/*.ts"]
