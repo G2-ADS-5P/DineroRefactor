@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  UseGuards,
 } from "@nestjs/common";
 import {
   ApiBearerAuth,
@@ -23,6 +24,7 @@ import { AssetHistoryPointDto } from "@portfolio/application/dto/asset-history.d
 import { AssetMarketDto } from "@portfolio/application/dto/asset-market.dto";
 import { CreateAssetDto } from "@portfolio/application/dto/create-asset.dto";
 import { AssetService } from "@portfolio/application/services/asset.service";
+import { PortfolioWriteAccessGuard } from "@portfolio/infra/guards/portfolio-write-access.guard";
 import { Permission } from "@shared/domain/enums/permission.enum";
 import type { AuthenticatedUser } from "@shared/infra/auth/interfaces/authenticated-user.interface";
 import { CurrentUser } from "@shared/infra/decorators/current-user.decorator";
@@ -109,6 +111,7 @@ export class AssetsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @RequirePermissions(Permission.PORTFOLIO_WRITE)
+  @UseGuards(PortfolioWriteAccessGuard)
   @ApiOperation({ summary: "Cadastrar ativo para uso no portfolio" })
   @ApiConflictResponse({ description: "Ticker ja cadastrado" })
   @HateoasItem<AssetMarketDto>({

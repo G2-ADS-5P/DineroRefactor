@@ -15,6 +15,13 @@
       "when": 1778964559566,
       "tag": "0001_young_korath",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781045487282,
+      "tag": "0002_portfolio_access",
+      "breakpoints": true
     }
   ]
 }
