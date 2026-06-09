@@ -1,3 +1,5 @@
+import 'package:dinero/core/network/api_client.dart';
+import 'package:dinero/core/network/token_storage.dart';
 import 'package:dinero/core/patterns/facade/finance_facade.dart';
 import 'package:dinero/repositories/interfaces/i_asset_repository.dart';
 import 'package:dinero/repositories/interfaces/i_category_repository.dart';
@@ -22,7 +24,21 @@ import 'package:dinero/viewmodels/settings_viewmodel.dart';
 import 'package:dinero/viewmodels/transactions_viewmodel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// ---------------------------------------------------------------------------
+// Fundação de rede (PIID-66 a 70 reutilizam estes providers)
+// ---------------------------------------------------------------------------
+final tokenStorageProvider = Provider<TokenStorage>((_) => TokenStorage());
+
+/// [ApiClient] pré-configurado com injeção automática de Bearer token.
+///
+/// O hook [onUnauthorized] será ligado ao AuthViewModel no PIID-66.
+final apiClientProvider = Provider<ApiClient>(
+  (ref) => ApiClient(ref.watch(tokenStorageProvider)),
+);
+
+// ---------------------------------------------------------------------------
 // Repositories
+// ---------------------------------------------------------------------------
 final transactionRepositoryProvider = Provider<ITransactionRepository>(
   (_) => MockTransactionRepository(),
 );
