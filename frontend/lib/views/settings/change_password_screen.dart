@@ -84,24 +84,44 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               onToggle: () => setState(() => _showConfirm = !_showConfirm),
             ),
 
-            const SizedBox(height: 28),
+            const SizedBox(height: 20),
 
-            // Salvar button
+            // Aviso: backend de troca de senha ainda não existe no Identity.
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, color: AppColors.warning, size: 18),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Funcionalidade em breve. A troca de senha ainda não está '
+                      'disponível.',
+                      style: TextStyle(color: AppColors.warning, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Salvar button — desabilitado: não há endpoint de troca de senha.
+            // TODO(PIID-XX): backend de troca de senha não existe ainda no identity
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Senha alterada com sucesso'),
-                      backgroundColor: AppColors.primary,
-                    ),
-                  );
-                  Navigator.of(context).pop();
-                },
+                onPressed: null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppColors.surfaceAlt,
+                  disabledForegroundColor: AppColors.textMuted,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
