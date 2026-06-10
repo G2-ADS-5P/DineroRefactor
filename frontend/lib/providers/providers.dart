@@ -145,7 +145,10 @@ final notificationsViewModelProvider =
 
 final settingsViewModelProvider =
     StateNotifierProvider<SettingsViewModel, SettingsState>(
-  (_) => SettingsViewModel(),
+  (ref) => SettingsViewModel(
+    ref.watch(userRepositoryProvider),
+    ref.watch(preferenceRepositoryProvider),
+  ),
 );
 
 final assetDetailViewModelProvider =

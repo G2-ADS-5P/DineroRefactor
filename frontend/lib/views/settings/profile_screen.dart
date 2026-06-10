@@ -2,6 +2,7 @@ import 'package:dinero/core/theme/app_colors.dart';
 import 'package:dinero/providers/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -17,7 +18,35 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(settingsViewModelProvider).user;
+    final settings = ref.watch(settingsViewModelProvider);
+    final user = settings.user;
+
+    if (user == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new,
+                color: AppColors.textPrimary, size: 18),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          title: const Text('Perfil',
+              style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700)),
+          centerTitle: true,
+        ),
+        body: Center(
+          child: settings.errorMessage != null
+              ? Text(settings.errorMessage!,
+                  style: const TextStyle(color: AppColors.danger))
+              : const CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -110,22 +139,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          const _InfoField(
+          _InfoField(
             icon: Icons.phone_outlined,
             label: 'TELEFONE',
-            value: '+55 11 99999-0000',
+            value: user.phone ?? '—',
           ),
           const SizedBox(height: 10),
-          const _InfoField(
+          _InfoField(
             icon: Icons.calendar_today_outlined,
             label: 'DATA DE NASCIMENTO',
-            value: '15/03/1995',
+            value: user.birthDate != null
+                ? DateFormat('dd/MM/yyyy').format(user.birthDate!)
+                : '—',
           ),
           const SizedBox(height: 10),
-          const _InfoField(
+          _InfoField(
             icon: Icons.location_on_outlined,
             label: 'LOCALIZAÇÃO',
-            value: 'São Paulo, SP',
+            value: user.location ?? '—',
           ),
 
           const SizedBox(height: 28),

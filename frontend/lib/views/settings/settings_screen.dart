@@ -54,7 +54,7 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       child: Center(
                         child: Text(
-                          user.initials,
+                          user?.initials ?? '?',
                           style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
                         ),
                       ),
@@ -64,8 +64,8 @@ class SettingsScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(user.name, style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
-                          Text(user.email, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                          Text(user?.name ?? 'Carregando...', style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
+                          Text(user?.email ?? '—', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                         ],
                       ),
                     ),
@@ -90,7 +90,7 @@ class SettingsScreen extends ConsumerWidget {
             _SectionTitle('PREFERÊNCIAS'),
             const SizedBox(height: 8),
             _SettingsGroup(items: [
-              _SettingsItem(icon: Icons.currency_exchange, label: 'Moeda padrão', trailing: const Text('BRL', style: TextStyle(color: AppColors.textSecondary)), onTap: () => context.push('/config/moedas')),
+              _SettingsItem(icon: Icons.currency_exchange, label: 'Moeda padrão', trailing: Text(state.defaultCurrency, style: const TextStyle(color: AppColors.textSecondary)), onTap: () => context.push('/config/moedas')),
               _SettingsItem(icon: Icons.dark_mode_outlined, label: 'Tema escuro', trailing: Switch(value: true, onChanged: null, activeColor: AppColors.primary), onTap: () {}),
             ]),
             const SizedBox(height: 20),
