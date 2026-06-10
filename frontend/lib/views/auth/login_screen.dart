@@ -76,13 +76,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   prefixIcon: Icon(Icons.lock_outline, color: AppColors.textSecondary),
                 ),
               ),
+              if (authState.errorMessage != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  authState.errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: AppColors.danger, fontSize: 14),
+                ),
+              ],
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: authState.isLoading
                     ? null
                     : () => ref
                         .read(authViewModelProvider.notifier)
-                        .login(_emailController.text, _passwordController.text),
+                        .login(
+                          _emailController.text.trim(),
+                          _passwordController.text,
+                        ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
