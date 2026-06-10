@@ -31,6 +31,7 @@ import 'package:dinero/viewmodels/dashboard_viewmodel.dart';
 import 'package:dinero/viewmodels/notifications_viewmodel.dart';
 import 'package:dinero/viewmodels/portfolio_viewmodel.dart';
 import 'package:dinero/viewmodels/settings_viewmodel.dart';
+import 'package:dinero/viewmodels/subscription_viewmodel.dart';
 import 'package:dinero/viewmodels/transactions_viewmodel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -159,4 +160,9 @@ final assetDetailViewModelProvider =
 final assetSearchViewModelProvider =
     StateNotifierProvider.autoDispose<AssetSearchViewModel, AssetSearchState>(
   (_) => AssetSearchViewModel(),
+);
+
+final subscriptionViewModelProvider = StateNotifierProvider.autoDispose<
+    SubscriptionViewModel, SubscriptionState>(
+  (ref) => SubscriptionViewModel(ref.watch(subscriptionRepositoryProvider)),
 );

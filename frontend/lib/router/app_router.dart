@@ -12,6 +12,7 @@ import 'package:dinero/views/portfolio/portfolio_screen.dart';
 import 'package:dinero/views/settings/change_password_screen.dart';
 import 'package:dinero/views/settings/profile_screen.dart';
 import 'package:dinero/views/settings/settings_screen.dart';
+import 'package:dinero/views/settings/subscription_screen.dart';
 import 'package:dinero/views/transactions/add_transaction_screen.dart';
 import 'package:dinero/views/transactions/transactions_screen.dart';
 import 'package:dinero/widgets/layout/main_shell.dart';
@@ -60,6 +61,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/config/notificacoes', builder: (_, __) => const NotificationsScreen()),
       GoRoute(path: '/config/moedas', builder: (_, __) => const CurrenciesScreen()),
       GoRoute(path: '/config/alterar-senha', builder: (_, __) => const ChangePasswordScreen()),
+      GoRoute(path: '/config/assinatura', builder: (_, __) => const SubscriptionScreen()),
       GoRoute(
         path: '/portfolio/ativo/:id',
         builder: (_, state) => AssetDetailScreen(assetId: state.pathParameters['id']!),
