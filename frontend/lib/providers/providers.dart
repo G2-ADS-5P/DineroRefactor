@@ -1,8 +1,20 @@
+import 'package:dinero/core/http/api_client.dart';
 import 'package:dinero/core/patterns/facade/finance_facade.dart';
+import 'package:dinero/core/storage/token_storage.dart';
+import 'package:dinero/models/subscription.dart';
+import 'package:dinero/models/user.dart';
+import 'package:dinero/repositories/http/http_auth_repository.dart';
+import 'package:dinero/repositories/http/http_preference_repository.dart';
+import 'package:dinero/repositories/http/http_subscription_repository.dart';
+import 'package:dinero/repositories/http/http_user_repository.dart';
 import 'package:dinero/repositories/interfaces/i_asset_repository.dart';
+import 'package:dinero/repositories/interfaces/i_auth_repository.dart';
 import 'package:dinero/repositories/interfaces/i_category_repository.dart';
 import 'package:dinero/repositories/interfaces/i_currency_repository.dart';
+import 'package:dinero/repositories/interfaces/i_preference_repository.dart';
+import 'package:dinero/repositories/interfaces/i_subscription_repository.dart';
 import 'package:dinero/repositories/interfaces/i_transaction_repository.dart';
+import 'package:dinero/repositories/interfaces/i_user_repository.dart';
 import 'package:dinero/repositories/mock/mock_asset_repository.dart';
 import 'package:dinero/repositories/mock/mock_category_repository.dart';
 import 'package:dinero/repositories/mock/mock_currency_repository.dart';
@@ -19,10 +31,42 @@ import 'package:dinero/viewmodels/dashboard_viewmodel.dart';
 import 'package:dinero/viewmodels/notifications_viewmodel.dart';
 import 'package:dinero/viewmodels/portfolio_viewmodel.dart';
 import 'package:dinero/viewmodels/settings_viewmodel.dart';
+import 'package:dinero/viewmodels/subscription_viewmodel.dart';
 import 'package:dinero/viewmodels/transactions_viewmodel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// Repositories
+// Identity HTTP infra
+final tokenStorageProvider = Provider<TokenStorage>((_) => TokenStorage());
+final apiClientProvider = Provider<ApiClient>(
+  (ref) => ApiClient(ref.watch(tokenStorageProvider)),
+);
+
+// Identity repositories (HTTP)
+final authRepositoryProvider = Provider<IAuthRepository>(
+  (ref) => HttpAuthRepository(ref.watch(apiClientProvider)),
+);
+final userRepositoryProvider = Provider<IUserRepository>(
+  (ref) => HttpUserRepository(ref.watch(apiClientProvider)),
+);
+final preferenceRepositoryProvider = Provider<IPreferenceRepository>(
+  (ref) => HttpPreferenceRepository(ref.watch(apiClientProvider)),
+);
+final subscriptionRepositoryProvider = Provider<ISubscriptionRepository>(
+  (ref) => HttpSubscriptionRepository(ref.watch(apiClientProvider)),
+);
+
+// Identity data providers
+final userProvider = FutureProvider<User>(
+  (ref) => ref.watch(userRepositoryProvider).getMe(),
+);
+final preferenceProvider = FutureProvider<String>(
+  (ref) => ref.watch(preferenceRepositoryProvider).getDefaultCurrency(),
+);
+final subscriptionProvider = FutureProvider<Subscription>(
+  (ref) => ref.watch(subscriptionRepositoryProvider).getMine(),
+);
+
+// Repositories (mock — outros cards)
 final transactionRepositoryProvider = Provider<ITransactionRepository>(
   (_) => MockTransactionRepository(),
 );
@@ -44,7 +88,12 @@ final financeFacadeProvider = Provider<FinanceFacade>((ref) => FinanceFacade(
 
 // ViewModels
 final authViewModelProvider =
-    StateNotifierProvider<AuthViewModel, AuthState>((_) => AuthViewModel());
+    StateNotifierProvider<AuthViewModel, AuthState>(
+  (ref) => AuthViewModel(
+    ref.watch(authRepositoryProvider),
+    ref.watch(tokenStorageProvider),
+  ),
+);
 
 final dashboardViewModelProvider =
     StateNotifierProvider<DashboardViewModel, DashboardState>(
@@ -97,7 +146,10 @@ final notificationsViewModelProvider =
 
 final settingsViewModelProvider =
     StateNotifierProvider<SettingsViewModel, SettingsState>(
-  (_) => SettingsViewModel(),
+  (ref) => SettingsViewModel(
+    ref.watch(userRepositoryProvider),
+    ref.watch(preferenceRepositoryProvider),
+  ),
 );
 
 final assetDetailViewModelProvider =
@@ -108,4 +160,9 @@ final assetDetailViewModelProvider =
 final assetSearchViewModelProvider =
     StateNotifierProvider.autoDispose<AssetSearchViewModel, AssetSearchState>(
   (_) => AssetSearchViewModel(),
+);
+
+final subscriptionViewModelProvider = StateNotifierProvider.autoDispose<
+    SubscriptionViewModel, SubscriptionState>(
+  (ref) => SubscriptionViewModel(ref.watch(subscriptionRepositoryProvider)),
 );
