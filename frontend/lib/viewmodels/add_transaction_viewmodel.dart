@@ -1,5 +1,8 @@
 import 'package:dinero/core/patterns/facade/finance_facade.dart';
+import 'package:dinero/core/network/api_client.dart';
+import 'package:dinero/models/category.dart';
 import 'package:dinero/models/transaction.dart';
+import 'package:dinero/repositories/interfaces/i_category_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum AddTransactionStatus { idle, loading, success, error }
@@ -8,17 +11,21 @@ class AddTransactionState {
   final TransactionType type;
   final String displayValue;
   final String selectedCategoryId;
+  final List<Category> categories;
   final String description;
   final String currency;
   final AddTransactionStatus status;
+  final String? errorMessage;
 
   const AddTransactionState({
     this.type = TransactionType.expense,
     this.displayValue = '0',
-    this.selectedCategoryId = 'alimentacao',
+    this.selectedCategoryId = '',
+    this.categories = const [],
     this.description = '',
     this.currency = 'BRL',
     this.status = AddTransactionStatus.idle,
+    this.errorMessage,
   });
 
   double get parsedValue =>
@@ -28,29 +35,44 @@ class AddTransactionState {
     TransactionType? type,
     String? displayValue,
     String? selectedCategoryId,
+    List<Category>? categories,
     String? description,
     String? currency,
     AddTransactionStatus? status,
+    String? errorMessage,
   }) =>
       AddTransactionState(
         type: type ?? this.type,
         displayValue: displayValue ?? this.displayValue,
         selectedCategoryId: selectedCategoryId ?? this.selectedCategoryId,
+        categories: categories ?? this.categories,
         description: description ?? this.description,
         currency: currency ?? this.currency,
         status: status ?? this.status,
+        errorMessage: errorMessage,
       );
 }
 
 class AddTransactionViewModel extends StateNotifier<AddTransactionState> {
-  final FinanceFacade _facade;
+  AddTransactionViewModel(this._facade, this._categoryRepo)
+      : super(const AddTransactionState()) {
+    _loadCategories();
+  }
 
-  AddTransactionViewModel(this._facade) : super(const AddTransactionState());
+  final FinanceFacade _facade;
+  final ICategoryRepository _categoryRepo;
+
+  Future<void> _loadCategories() async {
+    final cats = await _categoryRepo.getAll();
+    state = state.copyWith(categories: cats);
+  }
 
   void setType(TransactionType type) => state = state.copyWith(type: type);
 
-  void selectCategory(String id) =>
-      state = state.copyWith(selectedCategoryId: id);
+  void selectCategory(String id) {
+    final next = id == state.selectedCategoryId ? '' : id;
+    state = state.copyWith(selectedCategoryId: next);
+  }
 
   void setDescription(String value) =>
       state = state.copyWith(description: value);
@@ -84,7 +106,14 @@ class AddTransactionViewModel extends StateNotifier<AddTransactionState> {
 
   Future<void> submit() async {
     if (state.parsedValue <= 0) return;
-    state = state.copyWith(status: AddTransactionStatus.loading);
+    if (state.description.trim().isEmpty) {
+      state = state.copyWith(
+        status: AddTransactionStatus.error,
+        errorMessage: 'Adicione uma descrição para a transação.',
+      );
+      return;
+    }
+    state = state.copyWith(status: AddTransactionStatus.loading, errorMessage: null);
     try {
       if (state.type == TransactionType.expense) {
         await _facade.registerExpense(
@@ -102,8 +131,10 @@ class AddTransactionViewModel extends StateNotifier<AddTransactionState> {
         );
       }
       state = state.copyWith(status: AddTransactionStatus.success);
+    } on ApiException catch (e) {
+      state = state.copyWith(status: AddTransactionStatus.error, errorMessage: e.message);
     } catch (_) {
-      state = state.copyWith(status: AddTransactionStatus.error);
+      state = state.copyWith(status: AddTransactionStatus.error, errorMessage: 'Erro ao registrar transação.');
     }
   }
 

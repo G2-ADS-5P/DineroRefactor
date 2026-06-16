@@ -76,6 +76,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   prefixIcon: Icon(Icons.lock_outline, color: AppColors.textSecondary),
                 ),
               ),
+              if (authState.errorMessage != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  authState.errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: AppColors.expense, fontSize: 13),
+                ),
+              ],
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: authState.isLoading

@@ -1,4 +1,3 @@
-import 'package:dinero/core/constants/mock_data.dart';
 import 'package:dinero/core/theme/app_colors.dart';
 import 'package:dinero/models/transaction.dart';
 import 'package:dinero/providers/providers.dart';
@@ -21,6 +20,7 @@ class AddTransactionScreen extends ConsumerWidget {
     ref.listen(addTransactionViewModelProvider, (_, next) {
       if (next.status == AddTransactionStatus.success) {
         ref.read(dashboardViewModelProvider.notifier).refresh();
+        ref.read(categoriesViewModelProvider.notifier).refresh();
         context.pop();
       }
     });
@@ -115,10 +115,10 @@ class AddTransactionScreen extends ConsumerWidget {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: MockData.categories.length,
+                itemCount: state.categories.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (_, i) {
-                  final cat = MockData.categories[i];
+                  final cat = state.categories[i];
                   return CategoryChip(
                     category: cat,
                     isSelected: state.selectedCategoryId == cat.id,
@@ -170,6 +170,17 @@ class AddTransactionScreen extends ConsumerWidget {
                 ),
               ),
             ),
+
+            // Error message
+            if (state.errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Text(
+                  state.errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: AppColors.expense, fontSize: 13),
+                ),
+              ),
 
             // Submit button
             Padding(
