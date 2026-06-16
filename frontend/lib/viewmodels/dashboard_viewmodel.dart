@@ -1,7 +1,7 @@
-import 'package:dinero/core/constants/mock_data.dart';
 import 'package:dinero/core/patterns/facade/finance_facade.dart';
 import 'package:dinero/models/card_model.dart';
 import 'package:dinero/models/transaction.dart';
+import 'package:dinero/repositories/interfaces/i_card_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DashboardState {
@@ -45,23 +45,36 @@ class DashboardState {
 
 class DashboardViewModel extends StateNotifier<DashboardState> {
   final FinanceFacade _facade;
+  final ICardRepository _cardRepo;
 
-  DashboardViewModel(this._facade) : super(const DashboardState()) {
+  DashboardViewModel(this._facade, this._cardRepo)
+      : super(const DashboardState()) {
     _load();
   }
 
   Future<void> _load() async {
-    final balance = await _facade.getTotalBalance();
-    final stats = await _facade.getMonthlyStats();
-    final recent = await _facade.getRecentTransactions(limit: 5);
-    state = state.copyWith(
-      totalBalance: balance,
-      monthlyIncome: stats['income']!,
-      monthlyExpenses: stats['expenses']!,
-      recentTransactions: recent,
-      cards: MockData.cards,
-      isLoading: false,
-    );
+    try {
+      final results = await Future.wait([
+        _facade.getTotalBalance(),
+        _facade.getMonthlyStats(),
+        _facade.getRecentTransactions(limit: 5),
+        _cardRepo.getAll(),
+      ]);
+      final balance = results[0] as double;
+      final stats = results[1] as Map<String, double>;
+      final recent = results[2] as List<Transaction>;
+      final cards = results[3] as List<CardModel>;
+      state = state.copyWith(
+        totalBalance: balance,
+        monthlyIncome: stats['income']!,
+        monthlyExpenses: stats['expenses']!,
+        recentTransactions: recent,
+        cards: cards,
+        isLoading: false,
+      );
+    } catch (_) {
+      state = state.copyWith(isLoading: false);
+    }
   }
 
   void toggleBalanceVisibility() {

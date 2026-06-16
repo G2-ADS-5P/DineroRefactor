@@ -1,14 +1,16 @@
 import 'package:dinero/core/network/api_client.dart';
 import 'package:dinero/core/network/token_storage.dart';
 import 'package:dinero/core/patterns/facade/finance_facade.dart';
+import 'package:dinero/repositories/http/http_card_repository.dart';
+import 'package:dinero/repositories/http/http_category_repository.dart';
+import 'package:dinero/repositories/http/http_transaction_repository.dart';
 import 'package:dinero/repositories/interfaces/i_asset_repository.dart';
+import 'package:dinero/repositories/interfaces/i_card_repository.dart';
 import 'package:dinero/repositories/interfaces/i_category_repository.dart';
 import 'package:dinero/repositories/interfaces/i_currency_repository.dart';
 import 'package:dinero/repositories/interfaces/i_transaction_repository.dart';
 import 'package:dinero/repositories/mock/mock_asset_repository.dart';
-import 'package:dinero/repositories/mock/mock_category_repository.dart';
 import 'package:dinero/repositories/mock/mock_currency_repository.dart';
-import 'package:dinero/repositories/mock/mock_transaction_repository.dart';
 import 'package:dinero/viewmodels/add_transaction_viewmodel.dart';
 import 'package:dinero/viewmodels/asset_detail_viewmodel.dart';
 import 'package:dinero/viewmodels/asset_search_viewmodel.dart';
@@ -40,10 +42,13 @@ final apiClientProvider = Provider<ApiClient>(
 // Repositories
 // ---------------------------------------------------------------------------
 final transactionRepositoryProvider = Provider<ITransactionRepository>(
-  (_) => MockTransactionRepository(),
+  (ref) => HttpTransactionRepository(ref.watch(apiClientProvider)),
 );
 final categoryRepositoryProvider = Provider<ICategoryRepository>(
-  (_) => MockCategoryRepository(),
+  (ref) => HttpCategoryRepository(ref.watch(apiClientProvider)),
+);
+final cardRepositoryProvider = Provider<ICardRepository>(
+  (ref) => HttpCardRepository(ref.watch(apiClientProvider)),
 );
 final assetRepositoryProvider = Provider<IAssetRepository>(
   (_) => MockAssetRepository(),
@@ -60,11 +65,19 @@ final financeFacadeProvider = Provider<FinanceFacade>((ref) => FinanceFacade(
 
 // ViewModels
 final authViewModelProvider =
-    StateNotifierProvider<AuthViewModel, AuthState>((_) => AuthViewModel());
+    StateNotifierProvider<AuthViewModel, AuthState>(
+  (ref) => AuthViewModel(
+    ref.watch(apiClientProvider),
+    ref.watch(tokenStorageProvider),
+  ),
+);
 
 final dashboardViewModelProvider =
     StateNotifierProvider<DashboardViewModel, DashboardState>(
-  (ref) => DashboardViewModel(ref.watch(financeFacadeProvider)),
+  (ref) => DashboardViewModel(
+    ref.watch(financeFacadeProvider),
+    ref.watch(cardRepositoryProvider),
+  ),
 );
 
 final transactionsViewModelProvider =
@@ -74,7 +87,10 @@ final transactionsViewModelProvider =
 
 final addTransactionViewModelProvider =
     StateNotifierProvider.autoDispose<AddTransactionViewModel, AddTransactionState>(
-  (ref) => AddTransactionViewModel(ref.watch(financeFacadeProvider)),
+  (ref) => AddTransactionViewModel(
+    ref.watch(financeFacadeProvider),
+    ref.watch(categoryRepositoryProvider),
+  ),
 );
 
 final categoriesViewModelProvider =
@@ -99,7 +115,9 @@ final portfolioViewModelProvider =
 );
 
 final cardsViewModelProvider =
-    StateNotifierProvider<CardsViewModel, CardsState>((_) => CardsViewModel());
+    StateNotifierProvider<CardsViewModel, CardsState>(
+  (ref) => CardsViewModel(ref.watch(cardRepositoryProvider)),
+);
 
 final currenciesViewModelProvider =
     StateNotifierProvider<CurrenciesViewModel, CurrenciesState>(
