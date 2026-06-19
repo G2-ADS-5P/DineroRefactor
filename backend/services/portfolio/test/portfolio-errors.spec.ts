@@ -140,10 +140,69 @@ describe("PortfolioAccessService errors", () => {
 
     await expect(service.assertCanWrite("user-1")).resolves.toBeUndefined();
   });
+
+  it("reports TRIAL_EXPIRED when status is EXPIRED for a trial plan", async () => {
+    repository.findByUserId.mockResolvedValueOnce(
+      makeAccess({
+        plan: "TRIAL",
+        status: "EXPIRED",
+        trialEndsAt: new Date(Date.now() - 60_000),
+      }),
+    );
+
+    await expectCode(service.assertCanWrite("user-1"), "TRIAL_EXPIRED");
+  });
+
+  it("reports PLAN_EXPIRED when status is EXPIRED for a PRO plan", async () => {
+    repository.findByUserId.mockResolvedValueOnce(
+      makeAccess({
+        plan: "PRO",
+        status: "EXPIRED",
+        planExpiresAt: new Date(Date.now() - 60_000),
+      }),
+    );
+
+    await expectCode(service.assertCanWrite("user-1"), "PLAN_EXPIRED");
+  });
+
+  it("reports PLAN_EXPIRED for a PRO plan expired by date while still ACTIVE", async () => {
+    repository.findByUserId.mockResolvedValueOnce(
+      makeAccess({
+        plan: "PRO",
+        status: "ACTIVE",
+        planExpiresAt: new Date(Date.now() - 60_000),
+      }),
+    );
+
+    await expectCode(service.assertCanWrite("user-1"), "PLAN_EXPIRED");
+  });
+
+  it("allows an active PRO plan within its expiry", async () => {
+    repository.findByUserId.mockResolvedValueOnce(
+      makeAccess({
+        plan: "PRO",
+        status: "ACTIVE",
+        planExpiresAt: new Date(Date.now() + 60_000),
+      }),
+    );
+
+    await expect(service.assertCanWrite("user-1")).resolves.toBeUndefined();
+  });
+
+  it("allows an active PRO plan with no expiry date", async () => {
+    repository.findByUserId.mockResolvedValueOnce(
+      makeAccess({
+        plan: "PRO",
+        status: "ACTIVE",
+      }),
+    );
+
+    await expect(service.assertCanWrite("user-1")).resolves.toBeUndefined();
+  });
 });
 
 function makeAccess(overrides: {
-  plan: "TRIAL" | "FREE" | "PRO";
+  plan: "TRIAL" | "PRO";
   status: "ACTIVE" | "EXPIRED" | "CANCELED";
   trialEndsAt?: Date;
   planExpiresAt?: Date;

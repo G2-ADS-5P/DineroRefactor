@@ -59,9 +59,106 @@ describe("PortfolioSubscriptionConsumerService", () => {
       },
     });
   });
+
+  describe("happy path", () => {
+    let callbacks: Array<(message: ConsumeMessage | null) => Promise<void>>;
+    let channel: {
+      assertExchange: jest.Mock;
+      assertQueue: jest.Mock;
+      bindQueue: jest.Mock;
+      consume: jest.Mock;
+      publish: jest.Mock;
+      waitForConfirms: jest.Mock;
+      ack: jest.Mock;
+      close: jest.Mock;
+    };
+    let accessService: { syncFromSubscriptionEvent: jest.Mock };
+
+    beforeEach(async () => {
+      callbacks = [];
+      channel = {
+        assertExchange: jest.fn().mockResolvedValue(undefined),
+        assertQueue: jest.fn().mockResolvedValue(undefined),
+        bindQueue: jest.fn().mockResolvedValue(undefined),
+        consume: jest.fn().mockImplementation((_queue, callback) => {
+          callbacks.push(callback);
+          return Promise.resolve({ consumerTag: "consumer-1" });
+        }),
+        publish: jest.fn().mockReturnValue(true),
+        waitForConfirms: jest.fn().mockResolvedValue(undefined),
+        ack: jest.fn(),
+        close: jest.fn().mockResolvedValue(undefined),
+      };
+      const rabbitMQService = {
+        createConfirmChannel: jest.fn().mockResolvedValue(channel),
+      } as unknown as RabbitMQService;
+      accessService = {
+        syncFromSubscriptionEvent: jest.fn().mockResolvedValue(undefined),
+      };
+      const service = new PortfolioSubscriptionConsumerService(
+        rabbitMQService,
+        accessService as unknown as PortfolioAccessService,
+      );
+
+      await service.onApplicationBootstrap();
+    });
+
+    it("consumes a TRIAL_STARTED event and syncs it", async () => {
+      await callbacks[0](makeMessage({ plan: "TRIAL", status: "ACTIVE" }));
+
+      expect(accessService.syncFromSubscriptionEvent).toHaveBeenCalledTimes(1);
+      const payload = accessService.syncFromSubscriptionEvent.mock.calls[0][0];
+      expect(payload.plan).toBe("TRIAL");
+      expect(payload.status).toBe("ACTIVE");
+      expect(channel.ack).toHaveBeenCalledTimes(1);
+      expect(channel.publish).not.toHaveBeenCalled();
+    });
+
+    it("consumes a PLAN_ACTIVATED event and syncs it", async () => {
+      await callbacks[0](
+        makeMessage({
+          plan: "PRO",
+          status: "ACTIVE",
+          planExpiresAt: new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+        }),
+      );
+
+      expect(accessService.syncFromSubscriptionEvent).toHaveBeenCalledTimes(1);
+      const payload = accessService.syncFromSubscriptionEvent.mock.calls[0][0];
+      expect(payload.plan).toBe("PRO");
+      expect(payload.status).toBe("ACTIVE");
+      expect(payload.planExpiresAt).not.toBeNull();
+      expect(channel.ack).toHaveBeenCalledTimes(1);
+      expect(channel.publish).not.toHaveBeenCalled();
+    });
+
+    it("consumes a PLAN_CANCELED event and syncs it", async () => {
+      await callbacks[0](makeMessage({ plan: "PRO", status: "CANCELED" }));
+
+      expect(accessService.syncFromSubscriptionEvent).toHaveBeenCalledTimes(1);
+      const payload = accessService.syncFromSubscriptionEvent.mock.calls[0][0];
+      expect(payload.status).toBe("CANCELED");
+      expect(channel.ack).toHaveBeenCalledTimes(1);
+      expect(channel.publish).not.toHaveBeenCalled();
+    });
+
+    it("consumes a PLAN_EXPIRED event and syncs it", async () => {
+      await callbacks[0](makeMessage({ plan: "TRIAL", status: "EXPIRED" }));
+
+      expect(accessService.syncFromSubscriptionEvent).toHaveBeenCalledTimes(1);
+      const payload = accessService.syncFromSubscriptionEvent.mock.calls[0][0];
+      expect(payload.status).toBe("EXPIRED");
+      expect(channel.ack).toHaveBeenCalledTimes(1);
+      expect(channel.publish).not.toHaveBeenCalled();
+    });
+  });
 });
 
-function makeMessage(): ConsumeMessage {
+function makeMessage(
+  overrides: Record<string, unknown> = {},
+): ConsumeMessage {
   return {
     content: Buffer.from(
       JSON.stringify({
@@ -71,6 +168,7 @@ function makeMessage(): ConsumeMessage {
         trialEndsAt: new Date(Date.now() + 60_000).toISOString(),
         planExpiresAt: null,
         occurredAt: new Date().toISOString(),
+        ...overrides,
       }),
     ),
     fields: {

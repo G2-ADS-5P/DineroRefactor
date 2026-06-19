@@ -186,6 +186,19 @@ describe("SubscriptionService", () => {
       const firstUpdated: Subscription = mockRepo.update.mock.calls[0][0];
       expect(firstUpdated.status).toBe("EXPIRED");
     });
+
+    it("publishes plan.expired with status=EXPIRED on the event payload", async () => {
+      const sub = makeSubscription({ id: "sub-1", userId: "user-1" });
+      mockRepo.findAllExpiredTrials.mockResolvedValueOnce([sub]);
+      mockRepo.update.mockResolvedValue(undefined);
+
+      await service.expireOldTrials();
+
+      expect(mockMessaging.publishPlanExpired).toHaveBeenCalledTimes(1);
+      const payload = mockMessaging.publishPlanExpired.mock.calls[0][0];
+      expect(payload.status).toBe("EXPIRED");
+      expect(payload.userId).toBe("user-1");
+    });
   });
 
   describe("findByUserId", () => {
