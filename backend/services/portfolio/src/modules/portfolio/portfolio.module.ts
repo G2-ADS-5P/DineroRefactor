@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { APP_FILTER } from "@nestjs/core";
 import { AssetService } from "@portfolio/application/services/asset.service";
 import { PortfolioService } from "@portfolio/application/services/portfolio.service";
 import { PortfolioAccessService } from "@portfolio/application/services/portfolio-access.service";
@@ -14,6 +15,7 @@ import { AssetsController } from "@portfolio/infra/controllers/assets.controller
 import { HealthController } from "@portfolio/infra/controllers/health.controller";
 import { PortfolioController } from "@portfolio/infra/controllers/portfolio.controller";
 import { PortfolioWriteAccessGuard } from "@portfolio/infra/guards/portfolio-write-access.guard";
+import { PortfolioExceptionFilter } from "@portfolio/infra/http/portfolio-exception.filter";
 import { DrizzleAssetRepository } from "@portfolio/infra/repositories/drizzle-asset.repository";
 import { DrizzlePortfolioAccessRepository } from "@portfolio/infra/repositories/drizzle-portfolio-access.repository";
 import { DrizzlePortfolioAssetRepository } from "@portfolio/infra/repositories/drizzle-portfolio-asset.repository";
@@ -33,6 +35,10 @@ import { BrapiQuotationService } from "@portfolio/infra/services/brapi-quotation
     DrizzlePortfolioAssetRepository,
     DrizzlePortfolioTransactionRepository,
     BrapiQuotationService,
+    {
+      provide: APP_FILTER,
+      useClass: PortfolioExceptionFilter,
+    },
     {
       provide: ASSET_REPOSITORY,
       useExisting: DrizzleAssetRepository,

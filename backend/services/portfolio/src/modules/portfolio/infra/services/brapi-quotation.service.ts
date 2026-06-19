@@ -255,6 +255,19 @@ export class BrapiQuotationService implements AssetQuotationService {
     ETH: "CRIPTO",
   };
 
+  private readonly fallbackDescriptions: Record<string, string> = {
+    B3SA3:
+      "B3SA3 representa acoes ordinarias da B3 S.A., empresa que opera a bolsa de valores brasileira e infraestrutura de mercado financeiro.",
+    ITSA4:
+      "ITSA4 representa acoes preferenciais da Itausa, holding brasileira com participacoes em empresas como Itau Unibanco, Dexco, Alpargatas e Aegea.",
+    ROXO34:
+      "ROXO34 e um BDR da Nu Holdings, grupo financeiro controlador do Nubank, com atuacao em servicos bancarios digitais na America Latina.",
+    CMIN3:
+      "CMIN3 representa acoes ordinarias da CSN Mineracao, companhia focada na producao e exportacao de minerio de ferro.",
+    CSAN3:
+      "CSAN3 representa acoes ordinarias da Cosan, grupo brasileiro com atuacao em energia, combustiveis, lubrificantes, gas natural e logistica.",
+  };
+
   private readonly cryptoNames: Record<string, string> = {
     ADA: "Cardano",
     AVAX: "Avalanche",
@@ -330,6 +343,10 @@ export class BrapiQuotationService implements AssetQuotationService {
         return this.searchEtfAssets(params);
       }
 
+      if (!normalizedType) {
+        return this.searchAllAssetTypes(params);
+      }
+
       return this.searchQuoteListAssets(
         params,
         this.toBrapiListType(params.type),
@@ -337,6 +354,65 @@ export class BrapiQuotationService implements AssetQuotationService {
     } catch {
       return this.fallbackMarketSearch(params);
     }
+  }
+
+  private async searchAllAssetTypes(
+    params: AssetMarketSearchParams,
+  ): Promise<AssetMarketSearchResult> {
+    const end = params.page * params.limit;
+    const secondaryLimit = Math.max(Math.ceil(end / 4), 10);
+    const baseParams = { ...params, page: 1 };
+
+    const results = await Promise.allSettled([
+      this.searchQuoteListAssets({ ...baseParams, limit: end }),
+      this.searchFiiAssets({
+        ...baseParams,
+        limit: secondaryLimit,
+        type: "FII",
+      }),
+      this.searchEtfAssets({
+        ...baseParams,
+        limit: secondaryLimit,
+        type: "ETF",
+      }),
+      this.searchCryptoAssets({
+        ...baseParams,
+        limit: secondaryLimit,
+        type: "CRIPTO",
+      }),
+    ]);
+    const sources = results
+      .filter(
+        (result): result is PromiseFulfilledResult<AssetMarketSearchResult> =>
+          result.status === "fulfilled",
+      )
+      .map((result) => result.value);
+
+    if (sources.length === 0) return this.fallbackMarketSearch(params);
+
+    const merged: AssetMarketListing[] = [];
+    const seenTickers = new Set<string>();
+    const maxSourceLength = Math.max(
+      ...sources.map((source) => source.items.length),
+    );
+
+    for (let index = 0; index < maxSourceLength; index += 1) {
+      for (const source of sources) {
+        const asset = source.items[index];
+        if (!asset || seenTickers.has(asset.ticker)) continue;
+
+        seenTickers.add(asset.ticker);
+        merged.push(asset);
+      }
+    }
+
+    const start = (params.page - 1) * params.limit;
+    return {
+      items: merged.slice(start, end),
+      total: sources.reduce((sum, source) => sum + source.total, 0),
+      page: params.page,
+      limit: params.limit,
+    };
   }
 
   private fallbackMarketListing(ticker: string): AssetMarketListing | null {
@@ -620,23 +696,7 @@ export class BrapiQuotationService implements AssetQuotationService {
       return brapiHistory;
     }
 
-    const quote = await this.getQuote(ticker);
-    const currentPrice = quote?.price ?? this.syntheticPrice(ticker);
-    const points = this.rangePointCount(range);
-    const trend = ((quote?.changePercent ?? this.hash(ticker) % 7) || 1) / 100;
-    const now = new Date();
-
-    return Array.from({ length: points }, (_, index) => {
-      const progress = points === 1 ? 1 : index / (points - 1);
-      const wave = Math.sin((index + this.hash(ticker)) * 0.85) * 0.018;
-      const value = currentPrice * (1 - trend + trend * progress + wave);
-      const date = this.pointDate(now, range, points - 1 - index);
-
-      return {
-        date: date.toISOString(),
-        value: this.roundMoney(value),
-      };
-    });
+    return [];
   }
 
   async getIndicators(ticker: string): Promise<AssetIndicators> {
@@ -671,6 +731,7 @@ export class BrapiQuotationService implements AssetQuotationService {
         quoteIndicators.description ??
         fiiIndicators.description ??
         fallback?.description ??
+        this.fallbackDescriptions[normalizedTicker] ??
         `${normalizedTicker} e um ativo financeiro acompanhado pelo portfolio.`,
     };
   }
@@ -954,46 +1015,6 @@ export class BrapiQuotationService implements AssetQuotationService {
 
   private syntheticPrice(ticker: string): number {
     return this.roundMoney(8 + (this.hash(ticker) % 45000) / 100);
-  }
-
-  private rangePointCount(range: HistoryRange): number {
-    const points: Record<HistoryRange, number> = {
-      "1D": 8,
-      "1S": 7,
-      "1M": 30,
-      "3M": 13,
-      "1A": 12,
-      TUDO: 24,
-    };
-
-    return points[range];
-  }
-
-  private pointDate(now: Date, range: HistoryRange, distance: number): Date {
-    const date = new Date(now);
-
-    if (range === "1D") {
-      date.setHours(now.getHours() - distance * 3);
-      return date;
-    }
-
-    if (range === "1S") {
-      date.setDate(now.getDate() - distance);
-      return date;
-    }
-
-    if (range === "1M") {
-      date.setDate(now.getDate() - distance);
-      return date;
-    }
-
-    if (range === "3M") {
-      date.setDate(now.getDate() - distance * 7);
-      return date;
-    }
-
-    date.setMonth(now.getMonth() - distance);
-    return date;
   }
 
   private hash(value: string): number {

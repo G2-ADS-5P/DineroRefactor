@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { AssetDto } from "@portfolio/application/dto/asset.dto";
 import {
   AssetDetailDto,
@@ -12,6 +7,10 @@ import {
 import { AssetHistoryPointDto } from "@portfolio/application/dto/asset-history.dto";
 import { AssetMarketDto } from "@portfolio/application/dto/asset-market.dto";
 import { CreateAssetDto } from "@portfolio/application/dto/create-asset.dto";
+import {
+  AssetNotFoundError,
+  TickerAlreadyRegisteredError,
+} from "@portfolio/domain/errors/portfolio.errors";
 import { Asset } from "@portfolio/domain/models/asset.entity";
 import {
   ASSET_QUOTATION_SERVICE,
@@ -46,7 +45,7 @@ export class AssetService {
     const existing = await this.assetRepository.findByTicker(dto.ticker);
 
     if (existing) {
-      throw new ConflictException("Ticker already registered");
+      throw new TickerAlreadyRegisteredError(dto.ticker);
     }
 
     const asset = Asset.create(dto);
@@ -126,7 +125,7 @@ export class AssetService {
 
   async getById(id: string): Promise<AssetDto> {
     const asset = await this.findById(id);
-    if (!asset) throw new NotFoundException("Asset not found");
+    if (!asset) throw new AssetNotFoundError(id);
     return asset;
   }
 
@@ -136,7 +135,7 @@ export class AssetService {
     range: HistoryRange,
   ): Promise<AssetDetailDto> {
     const asset = await this.assetRepository.findById(id);
-    if (!asset) throw new NotFoundException("Asset not found");
+    if (!asset) throw new AssetNotFoundError(id);
 
     const [quote, indicators, history, position] = await Promise.all([
       this.quotationService.getQuote(asset.ticker),
@@ -170,7 +169,7 @@ export class AssetService {
     range: HistoryRange,
   ): Promise<AssetHistoryPointDto[]> {
     const asset = await this.assetRepository.findById(id);
-    if (!asset) throw new NotFoundException("Asset not found");
+    if (!asset) throw new AssetNotFoundError(id);
 
     return this.getHistoryPoints(asset.ticker, range);
   }
@@ -185,7 +184,7 @@ export class AssetService {
       await this.quotationService.findMarketAsset(normalizedTicker);
 
     if (!marketAsset) {
-      throw new NotFoundException(`Asset ${normalizedTicker} not found`);
+      throw new AssetNotFoundError(normalizedTicker);
     }
 
     return this.createOrUpdateMarketAsset(marketAsset);

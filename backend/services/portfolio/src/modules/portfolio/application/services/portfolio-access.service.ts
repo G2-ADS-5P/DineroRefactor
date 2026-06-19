@@ -1,6 +1,13 @@
-import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { PortfolioAccessResponseDto } from "@portfolio/application/dto/portfolio-access-response.dto";
 import type { SubscriptionEventDto } from "@portfolio/application/dto/subscription-event.dto";
+import {
+  PlanExpiredError,
+  PortfolioAccessNotSyncedError,
+  PortfolioPlanDoesNotAllowWriteError,
+  SubscriptionCanceledError,
+  TrialExpiredError,
+} from "@portfolio/domain/errors/portfolio.errors";
 import { PortfolioAccess } from "@portfolio/domain/models/portfolio-access.entity";
 import {
   PORTFOLIO_ACCESS_REPOSITORY,
@@ -34,11 +41,31 @@ export class PortfolioAccessService {
 
   async assertCanWrite(userId: string): Promise<void> {
     const access = await this.accessRepository.findByUserId(userId);
+    const now = new Date();
 
-    if (!access?.canWrite()) {
-      throw new ForbiddenException(
-        "Portfolio write access is not active for this user",
-      );
+    if (!access) throw new PortfolioAccessNotSyncedError();
+    if (access.status === "CANCELED") throw new SubscriptionCanceledError();
+    if (
+      access.plan === "TRIAL" &&
+      access.trialEndsAt &&
+      now > access.trialEndsAt
+    ) {
+      throw new TrialExpiredError(access.trialEndsAt);
+    }
+    if (
+      access.plan === "PRO" &&
+      access.planExpiresAt &&
+      now > access.planExpiresAt
+    ) {
+      throw new PlanExpiredError(access.planExpiresAt);
+    }
+    if (access.status === "EXPIRED") {
+      if (access.plan === "TRIAL")
+        throw new TrialExpiredError(access.trialEndsAt);
+      throw new PlanExpiredError(access.planExpiresAt);
+    }
+    if (!access.canWrite()) {
+      throw new PortfolioPlanDoesNotAllowWriteError(access.plan);
     }
   }
 

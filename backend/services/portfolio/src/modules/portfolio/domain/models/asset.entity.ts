@@ -1,3 +1,5 @@
+import { TickerRequiredError } from "@portfolio/domain/errors/portfolio.errors";
+
 export const AssetTypes = [
   "ACAO",
   "FII",
@@ -47,7 +49,7 @@ export class Asset {
     type: AssetType;
   }): Asset {
     if (!props.ticker.trim()) {
-      throw new Error("Ticker cannot be empty");
+      throw new TickerRequiredError();
     }
 
     const asset = new Asset();

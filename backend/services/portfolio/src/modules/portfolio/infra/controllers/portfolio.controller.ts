@@ -27,10 +27,8 @@ import { PortfolioTransactionResultDto } from "@portfolio/application/dto/portfo
 import { PortfolioService } from "@portfolio/application/services/portfolio.service";
 import { PortfolioAccessService } from "@portfolio/application/services/portfolio-access.service";
 import { PortfolioWriteAccessGuard } from "@portfolio/infra/guards/portfolio-write-access.guard";
-import { Permission } from "@shared/domain/enums/permission.enum";
 import type { AuthenticatedUser } from "@shared/infra/auth/interfaces/authenticated-user.interface";
 import { CurrentUser } from "@shared/infra/decorators/current-user.decorator";
-import { RequirePermissions } from "@shared/infra/decorators/permissions.decorator";
 import { HateoasItem } from "@shared/infra/hateoas";
 
 @ApiTags("portfolio")
@@ -43,7 +41,6 @@ export class PortfolioController {
   ) {}
 
   @Get()
-  @RequirePermissions(Permission.PORTFOLIO_READ)
   @ApiOperation({ summary: "Consultar portfolio do usuario autenticado" })
   @ApiQuery({ name: "range", required: false, type: String })
   @HateoasItem<PortfolioDto>({
@@ -67,7 +64,6 @@ export class PortfolioController {
   }
 
   @Get("access/me")
-  @RequirePermissions(Permission.PORTFOLIO_READ)
   @ApiOperation({ summary: "Consultar acesso de escrita no portfolio" })
   async getAccessStatus(
     @CurrentUser() user: AuthenticatedUser,
@@ -76,7 +72,6 @@ export class PortfolioController {
   }
 
   @Get("transactions")
-  @RequirePermissions(Permission.PORTFOLIO_READ)
   @ApiOperation({ summary: "Listar lancamentos do portfolio" })
   async listTransactions(
     @CurrentUser() user: AuthenticatedUser,
@@ -85,7 +80,6 @@ export class PortfolioController {
   }
 
   @Get("assets/:id")
-  @RequirePermissions(Permission.PORTFOLIO_READ)
   @ApiOperation({ summary: "Buscar ativo do portfolio por ID" })
   @HateoasItem<PortfolioItemDto>({
     basePath: "/v1/portfolio/assets",
@@ -104,7 +98,6 @@ export class PortfolioController {
 
   @Post("assets")
   @HttpCode(HttpStatus.CREATED)
-  @RequirePermissions(Permission.PORTFOLIO_WRITE)
   @UseGuards(PortfolioWriteAccessGuard)
   @ApiOperation({ summary: "Adicionar ativo ao portfolio" })
   @HateoasItem<PortfolioItemDto>({
@@ -124,7 +117,6 @@ export class PortfolioController {
 
   @Post("transactions")
   @HttpCode(HttpStatus.CREATED)
-  @RequirePermissions(Permission.PORTFOLIO_WRITE)
   @UseGuards(PortfolioWriteAccessGuard)
   @ApiOperation({ summary: "Adicionar lancamento de compra ou venda" })
   @HateoasItem<PortfolioTransactionResultDto>({

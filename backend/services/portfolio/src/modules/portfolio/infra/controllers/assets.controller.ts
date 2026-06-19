@@ -25,10 +25,8 @@ import { AssetMarketDto } from "@portfolio/application/dto/asset-market.dto";
 import { CreateAssetDto } from "@portfolio/application/dto/create-asset.dto";
 import { AssetService } from "@portfolio/application/services/asset.service";
 import { PortfolioWriteAccessGuard } from "@portfolio/infra/guards/portfolio-write-access.guard";
-import { Permission } from "@shared/domain/enums/permission.enum";
 import type { AuthenticatedUser } from "@shared/infra/auth/interfaces/authenticated-user.interface";
 import { CurrentUser } from "@shared/infra/decorators/current-user.decorator";
-import { RequirePermissions } from "@shared/infra/decorators/permissions.decorator";
 import { HateoasItem, HateoasList } from "@shared/infra/hateoas";
 
 @ApiTags("assets")
@@ -38,7 +36,6 @@ export class AssetsController {
   constructor(private readonly assetService: AssetService) {}
 
   @Get()
-  @RequirePermissions(Permission.PORTFOLIO_READ)
   @ApiOperation({ summary: "Listar ativos disponiveis para portfolio" })
   @ApiQuery({ name: "_page", required: false, type: Number })
   @ApiQuery({ name: "_size", required: false, type: Number })
@@ -70,7 +67,6 @@ export class AssetsController {
   }
 
   @Get(":id/history")
-  @RequirePermissions(Permission.PORTFOLIO_READ)
   @ApiOperation({ summary: "Consultar historico temporal do ativo" })
   @ApiQuery({ name: "range", required: false, type: String })
   async history(
@@ -84,7 +80,6 @@ export class AssetsController {
   }
 
   @Get(":id")
-  @RequirePermissions(Permission.PORTFOLIO_READ)
   @ApiOperation({ summary: "Buscar ativo por ID" })
   @ApiNotFoundResponse({ description: "Ativo nao encontrado" })
   @ApiQuery({ name: "range", required: false, type: String })
@@ -110,7 +105,6 @@ export class AssetsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @RequirePermissions(Permission.PORTFOLIO_WRITE)
   @UseGuards(PortfolioWriteAccessGuard)
   @ApiOperation({ summary: "Cadastrar ativo para uso no portfolio" })
   @ApiConflictResponse({ description: "Ticker ja cadastrado" })

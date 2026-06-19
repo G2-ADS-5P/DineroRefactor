@@ -17,10 +17,10 @@ class ApiClient {
   final Dio dio;
   final TokenStorage _tokenStorage;
 
-  ApiClient(this._tokenStorage)
+  ApiClient(this._tokenStorage, {String? baseUrl})
       : dio = Dio(
           BaseOptions(
-            baseUrl: ApiConfig.identityBaseUrl,
+            baseUrl: baseUrl ?? ApiConfig.identityBaseUrl,
             connectTimeout: const Duration(seconds: 10),
             receiveTimeout: const Duration(seconds: 10),
             headers: {'Content-Type': 'application/json'},
@@ -50,11 +50,20 @@ class ApiClient {
   ApiException toApiException(DioException error) {
     final statusCode = error.response?.statusCode;
     final data = error.response?.data;
+    String? code;
+    Map<String, dynamic>? details;
+    String? correlationId;
 
     String message;
     if (data is Map && data['message'] != null) {
       final raw = data['message'];
       message = raw is List ? raw.join(', ') : raw.toString();
+      code = data['code']?.toString();
+      correlationId = data['correlationId']?.toString();
+      final rawDetails = data['details'];
+      if (rawDetails is Map) {
+        details = Map<String, dynamic>.from(rawDetails);
+      }
     } else if (error.type == DioExceptionType.connectionTimeout ||
         error.type == DioExceptionType.connectionError) {
       message = 'Não foi possível conectar ao servidor';
@@ -62,6 +71,12 @@ class ApiClient {
       message = error.message ?? 'Erro inesperado';
     }
 
-    return ApiException(message, statusCode: statusCode);
+    return ApiException(
+      message,
+      statusCode: statusCode,
+      code: code,
+      details: details,
+      correlationId: correlationId,
+    );
   }
 }
