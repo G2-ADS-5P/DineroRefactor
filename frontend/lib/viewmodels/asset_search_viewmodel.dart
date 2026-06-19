@@ -1,5 +1,5 @@
-import 'package:dinero/core/constants/mock_data.dart';
 import 'package:dinero/models/asset.dart';
+import 'package:dinero/repositories/interfaces/i_asset_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AssetSearchState {
@@ -7,12 +7,18 @@ class AssetSearchState {
   final List<Asset> filteredAssets;
   final String query;
   final String selectedFilter;
+  final bool isLoading;
+  final bool isAdding;
+  final String? errorMessage;
 
   const AssetSearchState({
     required this.allAssets,
     required this.filteredAssets,
     this.query = '',
     this.selectedFilter = 'Todos',
+    this.isLoading = false,
+    this.isAdding = false,
+    this.errorMessage,
   });
 
   AssetSearchState copyWith({
@@ -20,60 +26,86 @@ class AssetSearchState {
     List<Asset>? filteredAssets,
     String? query,
     String? selectedFilter,
+    bool? isLoading,
+    bool? isAdding,
+    String? errorMessage,
   }) {
     return AssetSearchState(
       allAssets: allAssets ?? this.allAssets,
       filteredAssets: filteredAssets ?? this.filteredAssets,
       query: query ?? this.query,
       selectedFilter: selectedFilter ?? this.selectedFilter,
+      isLoading: isLoading ?? this.isLoading,
+      isAdding: isAdding ?? this.isAdding,
+      errorMessage: errorMessage,
     );
   }
 }
 
 class AssetSearchViewModel extends StateNotifier<AssetSearchState> {
-  AssetSearchViewModel()
-      : super(AssetSearchState(
-          allAssets: MockData.searchableAssets,
-          filteredAssets: MockData.searchableAssets,
-        ));
+  final IAssetRepository _repo;
 
-  void search(String query) {
-    state = state.copyWith(query: query, filteredAssets: _apply(query, state.selectedFilter));
+  AssetSearchViewModel(this._repo)
+    : super(
+        const AssetSearchState(
+          allAssets: [],
+          filteredAssets: [],
+          isLoading: true,
+        ),
+      ) {
+    load();
   }
 
-  void setFilter(String filter) {
-    state = state.copyWith(selectedFilter: filter, filteredAssets: _apply(state.query, filter));
+  Future<void> load() async {
+    await _fetch(query: state.query, filter: state.selectedFilter);
   }
 
-  List<Asset> _apply(String query, String filter) {
-    var result = state.allAssets;
+  Future<void> search(String query) async {
+    state = state.copyWith(query: query);
+    await _fetch(query: query, filter: state.selectedFilter);
+  }
 
-    if (filter != 'Todos') {
-      final type = _filterToType(filter);
-      if (type != null) {
-        result = result.where((a) => a.assetType == type).toList();
-      }
+  Future<void> setFilter(String filter) async {
+    state = state.copyWith(selectedFilter: filter);
+    await _fetch(query: state.query, filter: filter);
+  }
+
+  Future<bool> addToPortfolio({
+    required Asset asset,
+    required int quantity,
+    required double averagePrice,
+  }) async {
+    state = state.copyWith(isAdding: true, errorMessage: null);
+    try {
+      await _repo.addToPortfolio(
+        ticker: asset.ticker,
+        quantity: quantity,
+        averagePrice: averagePrice,
+      );
+      state = state.copyWith(isAdding: false, errorMessage: null);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isAdding: false, errorMessage: e.toString());
+      return false;
     }
-
-    if (query.trim().isNotEmpty) {
-      final q = query.trim().toUpperCase();
-      result = result.where((a) {
-        return a.ticker.toUpperCase().contains(q) ||
-            a.name.toUpperCase().contains(q);
-      }).toList();
-    }
-
-    return result;
   }
 
-  AssetType? _filterToType(String filter) {
-    switch (filter) {
-      case 'Ações': return AssetType.acoes;
-      case 'FIIs':  return AssetType.fiis;
-      case 'BDRs':  return AssetType.bdrs;
-      case 'ETFs':  return AssetType.etfs;
-      case 'Cripto': return AssetType.cripto;
-      default: return null;
+  Future<void> _fetch({required String query, required String filter}) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final assets = await _repo.search(
+        query: query,
+        type: AssetTypeMapper.toApi(filter),
+        limit: 30,
+      );
+      state = state.copyWith(
+        allAssets: assets,
+        filteredAssets: assets,
+        isLoading: false,
+        errorMessage: null,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
 }

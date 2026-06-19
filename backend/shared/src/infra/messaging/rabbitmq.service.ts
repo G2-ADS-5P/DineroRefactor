@@ -1,6 +1,11 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { Channel, ChannelModel } from "amqplib";
+import type { Channel, ChannelModel, ConfirmChannel } from "amqplib";
 import amqplib from "amqplib";
 
 @Injectable()
@@ -15,7 +20,9 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
     const url = this.configService.get<string>("RABBITMQ_URL");
 
     if (!url) {
-      this.logger.warn("RABBITMQ_URL not configured; RabbitMQ client disabled.");
+      this.logger.warn(
+        "RABBITMQ_URL not configured; RabbitMQ client disabled.",
+      );
       return;
     }
 
@@ -43,5 +50,13 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
     }
 
     return this.connection.createChannel();
+  }
+
+  async createConfirmChannel(): Promise<ConfirmChannel> {
+    if (!this.connection) {
+      throw new Error("RabbitMQ connection not initialized");
+    }
+
+    return this.connection.createConfirmChannel();
   }
 }

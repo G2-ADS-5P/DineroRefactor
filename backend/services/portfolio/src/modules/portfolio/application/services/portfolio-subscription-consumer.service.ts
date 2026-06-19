@@ -11,7 +11,8 @@ import {
   SubscriptionRoutingKey,
 } from "@shared/contracts/events/subscription-events.enum";
 import { RabbitMQService } from "@shared/infra/messaging/rabbitmq.service";
-import type { Channel } from "amqplib";
+import type { ConfirmChannel } from "amqplib";
+import { randomUUID } from "node:crypto";
 
 const EXCHANGE_TYPE = "direct";
 
@@ -22,6 +23,12 @@ const QUEUES = {
   planExpired: "portfolio.identity-subscription.plan-expired.queue",
 } as const;
 
+const DEAD_LETTER = {
+  exchange: "portfolio.identity-subscription.errors.exchange",
+  queue: "portfolio.identity-subscription.errors.queue",
+  routingKey: "portfolio.identity-subscription.error",
+} as const;
+
 @Injectable()
 export class PortfolioSubscriptionConsumerService
   implements OnApplicationBootstrap, OnModuleDestroy
@@ -29,7 +36,7 @@ export class PortfolioSubscriptionConsumerService
   private readonly logger = new Logger(
     PortfolioSubscriptionConsumerService.name,
   );
-  private channel?: Channel;
+  private channel?: ConfirmChannel;
 
   constructor(
     private readonly rabbitMQService: RabbitMQService,
@@ -37,7 +44,8 @@ export class PortfolioSubscriptionConsumerService
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
-    this.channel = await this.rabbitMQService.createChannel();
+    this.channel = await this.rabbitMQService.createConfirmChannel();
+    await this.registerDeadLetterQueue();
 
     await Promise.all([
       this.registerConsumer({
@@ -89,22 +97,104 @@ export class PortfolioSubscriptionConsumerService
     await this.channel.consume(params.queueName, async (msg) => {
       if (!msg || !this.channel) return;
 
+      const correlationId = msg.properties.correlationId || randomUUID();
+
       try {
         const payload = JSON.parse(
           msg.content.toString(),
         ) as SubscriptionEventDto;
         await this.portfolioAccessService.syncFromSubscriptionEvent(payload);
         this.channel.ack(msg);
-        this.logger.log(`Message consumed from queue "${params.queueName}"`);
-      } catch (error) {
-        this.logger.error(
-          `Failed to process message from queue "${params.queueName}"`,
-          error,
+        this.logger.log(
+          JSON.stringify({
+            event: "subscription_message_consumed",
+            queue: params.queueName,
+            exchange: params.exchangeName,
+            routingKey: params.routingKey,
+            correlationId,
+            userId: payload.userId,
+          }),
         );
-        this.channel.nack(msg, false, false);
+      } catch (error) {
+        await this.publishToDeadLetterQueue({
+          queueName: params.queueName,
+          exchangeName: params.exchangeName,
+          routingKey: params.routingKey,
+          correlationId,
+          payload: msg.content.toString(),
+          error,
+        });
+        this.channel.ack(msg);
+        this.logger.error(
+          JSON.stringify({
+            event: "subscription_message_sent_to_dlq",
+            queue: params.queueName,
+            exchange: params.exchangeName,
+            routingKey: params.routingKey,
+            correlationId,
+            error: this.errorMessage(error),
+          }),
+        );
       }
     });
 
     this.logger.log(`Consumer registered on queue "${params.queueName}"`);
+  }
+
+  private async registerDeadLetterQueue(): Promise<void> {
+    if (!this.channel) {
+      throw new Error("RabbitMQ consumer channel not initialized");
+    }
+
+    await this.channel.assertExchange(DEAD_LETTER.exchange, EXCHANGE_TYPE, {
+      durable: true,
+    });
+    await this.channel.assertQueue(DEAD_LETTER.queue, { durable: true });
+    await this.channel.bindQueue(
+      DEAD_LETTER.queue,
+      DEAD_LETTER.exchange,
+      DEAD_LETTER.routingKey,
+    );
+  }
+
+  private async publishToDeadLetterQueue(params: {
+    queueName: string;
+    exchangeName: string;
+    routingKey: string;
+    correlationId: string;
+    payload: string;
+    error: unknown;
+  }): Promise<void> {
+    if (!this.channel) {
+      throw new Error("RabbitMQ consumer channel not initialized");
+    }
+
+    const deadLetterPayload = {
+      failedAt: new Date().toISOString(),
+      source: {
+        queue: params.queueName,
+        exchange: params.exchangeName,
+        routingKey: params.routingKey,
+      },
+      correlationId: params.correlationId,
+      error: this.errorMessage(params.error),
+      payload: params.payload,
+    };
+
+    this.channel.publish(
+      DEAD_LETTER.exchange,
+      DEAD_LETTER.routingKey,
+      Buffer.from(JSON.stringify(deadLetterPayload)),
+      {
+        persistent: true,
+        contentType: "application/json",
+        correlationId: params.correlationId,
+      },
+    );
+    await this.channel.waitForConfirms();
+  }
+
+  private errorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
   }
 }

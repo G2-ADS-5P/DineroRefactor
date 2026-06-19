@@ -40,33 +40,61 @@ final routerProvider = Provider<GoRouter>((ref) {
             GoRoute(path: '/', builder: (_, __) => const DashboardScreen()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: '/categorias', builder: (_, __) => const CategoriesScreen()),
+            GoRoute(
+                path: '/categorias',
+                builder: (_, __) => const CategoriesScreen()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: '/portfolio', builder: (_, __) => const PortfolioScreen()),
+            GoRoute(
+                path: '/portfolio',
+                builder: (_, __) => const PortfolioScreen()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: '/config', builder: (_, __) => const SettingsScreen()),
+            GoRoute(
+                path: '/config', builder: (_, __) => const SettingsScreen()),
           ]),
         ],
       ),
-      GoRoute(path: '/add-transaction', builder: (_, __) => const AddTransactionScreen()),
+      GoRoute(
+          path: '/add-transaction',
+          builder: (_, __) => const AddTransactionScreen()),
       GoRoute(
         path: '/categorias/:id',
-        builder: (_, state) => CategoryDetailScreen(categoryId: state.pathParameters['id']!),
+        builder: (_, state) =>
+            CategoryDetailScreen(categoryId: state.pathParameters['id']!),
       ),
-      GoRoute(path: '/config/perfil', builder: (_, __) => const ProfileScreen()),
+      GoRoute(
+          path: '/config/perfil', builder: (_, __) => const ProfileScreen()),
       GoRoute(path: '/config/cartoes', builder: (_, __) => const CardsScreen()),
-      GoRoute(path: '/config/transacoes', builder: (_, __) => const TransactionsScreen()),
-      GoRoute(path: '/config/notificacoes', builder: (_, __) => const NotificationsScreen()),
-      GoRoute(path: '/config/moedas', builder: (_, __) => const CurrenciesScreen()),
-      GoRoute(path: '/config/alterar-senha', builder: (_, __) => const ChangePasswordScreen()),
-      GoRoute(path: '/config/assinatura', builder: (_, __) => const SubscriptionScreen()),
+      GoRoute(
+          path: '/config/transacoes',
+          builder: (_, __) => const TransactionsScreen()),
+      GoRoute(
+          path: '/config/notificacoes',
+          builder: (_, __) => const NotificationsScreen()),
+      GoRoute(
+          path: '/config/moedas', builder: (_, __) => const CurrenciesScreen()),
+      GoRoute(
+          path: '/config/alterar-senha',
+          builder: (_, __) => const ChangePasswordScreen()),
+      GoRoute(
+          path: '/config/assinatura',
+          builder: (_, __) => const SubscriptionScreen()),
       GoRoute(
         path: '/portfolio/ativo/:id',
-        builder: (_, state) => AssetDetailScreen(assetId: state.pathParameters['id']!),
+        builder: (_, state) =>
+            AssetDetailScreen(assetId: state.pathParameters['id']!),
       ),
-      GoRoute(path: '/portfolio/pesquisar', builder: (_, __) => const AssetSearchScreen()),
+      GoRoute(
+          path: '/portfolio/pesquisar',
+          builder: (_, __) => const AssetSearchScreen()),
+      GoRoute(
+        path: '/portfolio/pesquisar/ativo/:id',
+        builder: (_, state) => AssetDetailScreen(
+          assetId: state.pathParameters['id']!,
+          marketAsset: true,
+        ),
+      ),
     ],
   );
 });

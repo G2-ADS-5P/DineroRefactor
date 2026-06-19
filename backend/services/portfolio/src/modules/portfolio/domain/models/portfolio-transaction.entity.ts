@@ -1,3 +1,9 @@
+import {
+  InvalidCostsError,
+  InvalidQuantityError,
+  InvalidUnitPriceError,
+} from "@portfolio/domain/errors/portfolio.errors";
+
 export const PortfolioTransactionTypes = ["COMPRA", "VENDA"] as const;
 
 export type PortfolioTransactionType =
@@ -69,10 +75,11 @@ export class PortfolioTransaction {
     unitPrice: number;
     costs: number;
   }): PortfolioTransaction {
-    if (props.quantity <= 0) throw new Error("Quantity must be greater than 0");
-    if (props.unitPrice <= 0)
-      throw new Error("Unit price must be greater than 0");
-    if (props.costs < 0) throw new Error("Costs cannot be negative");
+    if (props.quantity <= 0) throw new InvalidQuantityError(props.quantity);
+    if (props.unitPrice <= 0) {
+      throw new InvalidUnitPriceError(props.unitPrice);
+    }
+    if (props.costs < 0) throw new InvalidCostsError(props.costs);
 
     const transaction = new PortfolioTransaction(undefined, new Date());
     transaction._userId = props.userId;

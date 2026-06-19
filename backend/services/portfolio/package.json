@@ -14,7 +14,8 @@
     "db:studio": "drizzle-kit studio",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "biome lint .",
-    "check": "biome check ."
+    "check": "biome check .",
+    "test": "jest --config jest.config.ts --runInBand"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

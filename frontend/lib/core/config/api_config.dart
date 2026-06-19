@@ -10,4 +10,10 @@ class ApiConfig {
     'IDENTITY_BASE_URL',
     defaultValue: 'http://localhost:4008/v1',
   );
+
+  /// Base URL do microsservico Portfolio.
+  static const String portfolioBaseUrl = String.fromEnvironment(
+    'PORTFOLIO_BASE_URL',
+    defaultValue: 'http://localhost:4007/v1',
+  );
 }

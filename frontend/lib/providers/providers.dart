@@ -1,9 +1,11 @@
+import 'package:dinero/core/config/api_config.dart';
 import 'package:dinero/core/http/api_client.dart';
 import 'package:dinero/core/patterns/facade/finance_facade.dart';
 import 'package:dinero/core/storage/token_storage.dart';
 import 'package:dinero/models/subscription.dart';
 import 'package:dinero/models/user.dart';
 import 'package:dinero/repositories/http/http_auth_repository.dart';
+import 'package:dinero/repositories/http/http_asset_repository.dart';
 import 'package:dinero/repositories/http/http_preference_repository.dart';
 import 'package:dinero/repositories/http/http_subscription_repository.dart';
 import 'package:dinero/repositories/http/http_user_repository.dart';
@@ -15,7 +17,6 @@ import 'package:dinero/repositories/interfaces/i_preference_repository.dart';
 import 'package:dinero/repositories/interfaces/i_subscription_repository.dart';
 import 'package:dinero/repositories/interfaces/i_transaction_repository.dart';
 import 'package:dinero/repositories/interfaces/i_user_repository.dart';
-import 'package:dinero/repositories/mock/mock_asset_repository.dart';
 import 'package:dinero/repositories/mock/mock_category_repository.dart';
 import 'package:dinero/repositories/mock/mock_currency_repository.dart';
 import 'package:dinero/repositories/mock/mock_transaction_repository.dart';
@@ -39,6 +40,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 final tokenStorageProvider = Provider<TokenStorage>((_) => TokenStorage());
 final apiClientProvider = Provider<ApiClient>(
   (ref) => ApiClient(ref.watch(tokenStorageProvider)),
+);
+final portfolioApiClientProvider = Provider<ApiClient>(
+  (ref) => ApiClient(
+    ref.watch(tokenStorageProvider),
+    baseUrl: ApiConfig.portfolioBaseUrl,
+  ),
 );
 
 // Identity repositories (HTTP)
@@ -74,21 +81,22 @@ final categoryRepositoryProvider = Provider<ICategoryRepository>(
   (_) => MockCategoryRepository(),
 );
 final assetRepositoryProvider = Provider<IAssetRepository>(
-  (_) => MockAssetRepository(),
+  (ref) => HttpAssetRepository(ref.watch(portfolioApiClientProvider)),
 );
 final currencyRepositoryProvider = Provider<ICurrencyRepository>(
   (_) => MockCurrencyRepository(),
 );
 
 // Facade
-final financeFacadeProvider = Provider<FinanceFacade>((ref) => FinanceFacade(
-      ref.watch(transactionRepositoryProvider),
-      ref.watch(categoryRepositoryProvider),
-    ));
+final financeFacadeProvider = Provider<FinanceFacade>(
+  (ref) => FinanceFacade(
+    ref.watch(transactionRepositoryProvider),
+    ref.watch(categoryRepositoryProvider),
+  ),
+);
 
 // ViewModels
-final authViewModelProvider =
-    StateNotifierProvider<AuthViewModel, AuthState>(
+final authViewModelProvider = StateNotifierProvider<AuthViewModel, AuthState>(
   (ref) => AuthViewModel(
     ref.watch(authRepositoryProvider),
     ref.watch(tokenStorageProvider),
@@ -97,72 +105,76 @@ final authViewModelProvider =
 
 final dashboardViewModelProvider =
     StateNotifierProvider<DashboardViewModel, DashboardState>(
-  (ref) => DashboardViewModel(ref.watch(financeFacadeProvider)),
-);
+      (ref) => DashboardViewModel(ref.watch(financeFacadeProvider)),
+    );
 
 final transactionsViewModelProvider =
     StateNotifierProvider<TransactionsViewModel, TransactionsState>(
-  (ref) => TransactionsViewModel(ref.watch(financeFacadeProvider)),
-);
+      (ref) => TransactionsViewModel(ref.watch(financeFacadeProvider)),
+    );
 
 final addTransactionViewModelProvider =
-    StateNotifierProvider.autoDispose<AddTransactionViewModel, AddTransactionState>(
-  (ref) => AddTransactionViewModel(ref.watch(financeFacadeProvider)),
-);
+    StateNotifierProvider.autoDispose<
+      AddTransactionViewModel,
+      AddTransactionState
+    >((ref) => AddTransactionViewModel(ref.watch(financeFacadeProvider)));
 
 final categoriesViewModelProvider =
     StateNotifierProvider<CategoriesViewModel, CategoriesState>(
-  (ref) => CategoriesViewModel(
-    ref.watch(categoryRepositoryProvider),
-    ref.watch(transactionRepositoryProvider),
-  ),
-);
+      (ref) => CategoriesViewModel(
+        ref.watch(categoryRepositoryProvider),
+        ref.watch(transactionRepositoryProvider),
+      ),
+    );
 
 final categoryDetailViewModelProvider =
-    StateNotifierProvider.autoDispose<CategoryDetailViewModel, CategoryDetailState>(
-  (ref) => CategoryDetailViewModel(
-    ref.watch(categoryRepositoryProvider),
-    ref.watch(transactionRepositoryProvider),
-  ),
-);
+    StateNotifierProvider.autoDispose<
+      CategoryDetailViewModel,
+      CategoryDetailState
+    >(
+      (ref) => CategoryDetailViewModel(
+        ref.watch(categoryRepositoryProvider),
+        ref.watch(transactionRepositoryProvider),
+      ),
+    );
 
 final portfolioViewModelProvider =
     StateNotifierProvider<PortfolioViewModel, PortfolioState>(
-  (ref) => PortfolioViewModel(ref.watch(assetRepositoryProvider)),
-);
+      (ref) => PortfolioViewModel(ref.watch(assetRepositoryProvider)),
+    );
 
 final cardsViewModelProvider =
     StateNotifierProvider<CardsViewModel, CardsState>((_) => CardsViewModel());
 
 final currenciesViewModelProvider =
     StateNotifierProvider<CurrenciesViewModel, CurrenciesState>(
-  (ref) => CurrenciesViewModel(ref.watch(currencyRepositoryProvider)),
-);
+      (ref) => CurrenciesViewModel(ref.watch(currencyRepositoryProvider)),
+    );
 
 final notificationsViewModelProvider =
     StateNotifierProvider<NotificationsViewModel, NotificationsState>(
-  (_) => NotificationsViewModel(),
-);
+      (_) => NotificationsViewModel(),
+    );
 
 final settingsViewModelProvider =
     StateNotifierProvider<SettingsViewModel, SettingsState>(
-  (ref) => SettingsViewModel(
-    ref.watch(userRepositoryProvider),
-    ref.watch(preferenceRepositoryProvider),
-  ),
-);
+      (ref) => SettingsViewModel(
+        ref.watch(userRepositoryProvider),
+        ref.watch(preferenceRepositoryProvider),
+      ),
+    );
 
 final assetDetailViewModelProvider =
     StateNotifierProvider.autoDispose<AssetDetailViewModel, AssetDetailState>(
-  (ref) => AssetDetailViewModel(ref.watch(assetRepositoryProvider)),
-);
+      (ref) => AssetDetailViewModel(ref.watch(assetRepositoryProvider)),
+    );
 
 final assetSearchViewModelProvider =
     StateNotifierProvider.autoDispose<AssetSearchViewModel, AssetSearchState>(
-  (_) => AssetSearchViewModel(),
-);
+      (ref) => AssetSearchViewModel(ref.watch(assetRepositoryProvider)),
+    );
 
-final subscriptionViewModelProvider = StateNotifierProvider.autoDispose<
-    SubscriptionViewModel, SubscriptionState>(
-  (ref) => SubscriptionViewModel(ref.watch(subscriptionRepositoryProvider)),
-);
+final subscriptionViewModelProvider =
+    StateNotifierProvider.autoDispose<SubscriptionViewModel, SubscriptionState>(
+      (ref) => SubscriptionViewModel(ref.watch(subscriptionRepositoryProvider)),
+    );
