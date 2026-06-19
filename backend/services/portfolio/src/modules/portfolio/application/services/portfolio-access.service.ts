@@ -45,28 +45,16 @@ export class PortfolioAccessService {
 
     if (!access) throw new PortfolioAccessNotSyncedError();
     if (access.status === "CANCELED") throw new SubscriptionCanceledError();
-    if (
-      access.plan === "TRIAL" &&
-      access.trialEndsAt &&
-      now > access.trialEndsAt
-    ) {
-      throw new TrialExpiredError(access.trialEndsAt);
-    }
-    if (
-      access.plan === "PRO" &&
-      access.planExpiresAt &&
-      now > access.planExpiresAt
-    ) {
-      throw new PlanExpiredError(access.planExpiresAt);
-    }
     if (access.status === "EXPIRED") {
-      if (access.plan === "TRIAL")
-        throw new TrialExpiredError(access.trialEndsAt);
+      if (access.plan === "TRIAL") throw new TrialExpiredError(access.trialEndsAt);
       throw new PlanExpiredError(access.planExpiresAt);
     }
-    if (!access.canWrite()) {
-      throw new PortfolioPlanDoesNotAllowWriteError(access.plan);
-    }
+    // fallback: covers the window between real expiry and the next cron run
+    if (access.plan === "TRIAL" && access.trialEndsAt && now > access.trialEndsAt)
+      throw new TrialExpiredError(access.trialEndsAt);
+    if (access.plan === "PRO" && access.planExpiresAt && now > access.planExpiresAt)
+      throw new PlanExpiredError(access.planExpiresAt);
+    if (!access.canWrite()) throw new PortfolioPlanDoesNotAllowWriteError(access.plan);
   }
 
   async getAccessStatus(userId: string): Promise<PortfolioAccessResponseDto> {
