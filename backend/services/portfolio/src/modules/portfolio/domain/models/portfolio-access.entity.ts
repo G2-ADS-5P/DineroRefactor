@@ -1,4 +1,4 @@
-export type PortfolioAccessPlan = "TRIAL" | "FREE" | "PRO";
+export type PortfolioAccessPlan = "TRIAL" | "PRO";
 export type PortfolioAccessStatus = "ACTIVE" | "EXPIRED" | "CANCELED";
 
 export class PortfolioAccess {
