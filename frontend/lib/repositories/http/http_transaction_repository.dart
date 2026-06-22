@@ -35,6 +35,7 @@ class HttpTransactionRepository implements ITransactionRepository {
         'type': t.type == TransactionType.income ? 'income' : 'expense',
         'description': t.description,
         'date': t.date.toUtc().toIso8601String(),
+        if (t.cardId != null) 'cardId': t.cardId,
         if (t.categoryId.isNotEmpty) 'categoryId': t.categoryId,
       },
     );
@@ -76,18 +77,26 @@ class HttpTransactionRepository implements ITransactionRepository {
 
   @override
   Future<double> getMonthlySpentByCategory(String categoryId) async {
+    final totals = await getMonthlySpentByCategories();
+    return totals[categoryId] ?? 0;
+  }
+
+  @override
+  Future<Map<String, double>> getMonthlySpentByCategories() async {
     final summary = await _fetchSummary(
       startDate: _firstDayOfMonth(),
       endDate: _lastDayOfMonth(),
     );
     final byCategory = summary['byCategory'] as List<dynamic>? ?? [];
+    final totals = <String, double>{};
     for (final entry in byCategory) {
       final e = entry as Map<String, dynamic>;
-      if (e['categoryId'] == categoryId) {
-        return _toDouble(e['totalExpense'] ?? 0);
+      final categoryId = e['categoryId']?.toString();
+      if (categoryId != null) {
+        totals[categoryId] = _toDouble(e['totalExpense'] ?? 0);
       }
     }
-    return 0;
+    return totals;
   }
 
   // ---------------------------------------------------------------------------
@@ -112,6 +121,7 @@ class HttpTransactionRepository implements ITransactionRepository {
       exchangeRate: _toDouble(j['exchangeRate'] ?? 1),
       valueInBrl: _toDouble(j['amountBrl'] ?? j['amount']),
       type: _mapType(j['type'] as String? ?? 'expense'),
+      cardId: j['cardId'] as String?,
       categoryId: j['categoryId'] as String? ?? '',
       description: j['description'] as String? ?? '',
       date: DateTime.parse(j['date'] as String),

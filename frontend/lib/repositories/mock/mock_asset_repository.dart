@@ -67,6 +67,18 @@ class MockAssetRepository implements IAssetRepository {
   }
 
   @override
+  Future<AssetHistorySeries> getHistory(
+    String id, {
+    String range = '1M',
+  }) async {
+    final asset = await getMarketAssetById(id, range: range);
+    return AssetHistorySeries(
+      values: asset?.priceHistory ?? const [],
+      dates: asset?.priceHistoryDates ?? const [],
+    );
+  }
+
+  @override
   Future<List<Asset>> search({
     String query = '',
     String? type,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dinero/models/asset.dart';
 import 'package:dinero/repositories/interfaces/i_asset_repository.dart';
 import 'package:dinero/viewmodels/asset_cache_notifier.dart';
@@ -42,11 +44,15 @@ class AssetSearchState {
 class AssetSearchViewModel extends StateNotifier<AssetSearchState> {
   final IAssetRepository _repo;
   final AssetCacheNotifier _cache;
+  Timer? _searchDebounce;
+  int _requestId = 0;
+  final Map<String, AssetHistorySeries> _historyCache = {};
 
   AssetSearchViewModel(this._repo, this._cache)
       : super(const AssetSearchState()) {
     // Exibe imediatamente o que já está no cache (pode ser vazio no início)
     _updateFromCache();
+    _loadInitial();
   }
 
   void _updateFromCache() {
@@ -72,21 +78,37 @@ class AssetSearchViewModel extends StateNotifier<AssetSearchState> {
       selectedFilter: state.selectedFilter,
     );
 
-    // Só vai ao backend se não achou nada com 3+ caracteres
-    if (cached.isEmpty && query.trim().length >= 3) {
-      _searchBackend(query);
-    }
+    _searchDebounce?.cancel();
+    if (query.trim().isEmpty) return;
+
+    _searchDebounce = Timer(
+      const Duration(milliseconds: 350),
+      () => _searchBackend(query, type: _selectedApiType()),
+    );
   }
 
   void setFilter(String filter) {
     final filtered = _applyFilters(_cache.state.assets, state.query, filter);
     state = state.copyWith(selectedFilter: filter, filteredAssets: filtered);
+    _searchDebounce?.cancel();
+    _searchBackend(state.query, type: AssetTypeMapper.toApi(filter));
   }
 
-  Future<void> _searchBackend(String query) async {
+  Future<void> _loadInitial() async {
+    if (!_cache.state.isEmpty) return;
+    await _searchBackend('', type: null);
+  }
+
+  Future<void> _searchBackend(String query, {String? type}) async {
+    final requestId = ++_requestId;
     state = state.copyWith(isLoading: true);
     try {
-      final results = await _repo.search(query: query, limit: 10);
+      final results = await _repo.search(
+        query: query,
+        type: type,
+        limit: 20,
+      );
+      if (requestId != _requestId) return;
       _cache.addResults(results);
       final filtered = _applyFilters(
         _cache.state.assets,
@@ -94,10 +116,24 @@ class AssetSearchViewModel extends StateNotifier<AssetSearchState> {
         state.selectedFilter,
       );
       state = state.copyWith(filteredAssets: filtered, isLoading: false);
-    } catch (_) {
-      // Não exibe erro — simplesmente para de carregar
-      state = state.copyWith(isLoading: false);
+    } catch (error) {
+      if (requestId != _requestId) return;
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: error.toString(),
+      );
     }
+  }
+
+  String? _selectedApiType() => AssetTypeMapper.toApi(state.selectedFilter);
+
+  Future<AssetHistorySeries> loadHistory(String assetId) async {
+    final cached = _historyCache[assetId];
+    if (cached != null) return cached;
+
+    final series = await _repo.getHistory(assetId, range: '1M');
+    _historyCache[assetId] = series;
+    return series;
   }
 
   Future<bool> addToPortfolio({
@@ -146,5 +182,11 @@ class AssetSearchViewModel extends StateNotifier<AssetSearchState> {
     }
 
     return result;
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    super.dispose();
   }
 }

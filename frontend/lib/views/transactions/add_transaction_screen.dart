@@ -1,4 +1,3 @@
-import 'package:dinero/core/constants/mock_data.dart';
 import 'package:dinero/core/theme/app_colors.dart';
 import 'package:dinero/models/transaction.dart';
 import 'package:dinero/providers/providers.dart';
@@ -16,18 +15,16 @@ class AddTransactionScreen extends ConsumerWidget {
     final colors = AppColors.of(context);
     final state = ref.watch(addTransactionViewModelProvider);
     final vm = ref.read(addTransactionViewModelProvider.notifier);
-    final cards = ref.watch(cardsViewModelProvider).cards;
+    final cards = state.cards;
     final isExpense = state.type == TransactionType.expense;
     final accentColor = isExpense ? AppColors.expense : AppColors.income;
-
-    // Pre-seleciona o primeiro cartão disponível
-    if (state.selectedCardId == null && cards.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => vm.selectCard(cards.first.id));
-    }
 
     ref.listen(addTransactionViewModelProvider, (_, next) {
       if (next.status == AddTransactionStatus.success) {
         ref.read(dashboardViewModelProvider.notifier).refresh();
+        ref.read(transactionsViewModelProvider.notifier).refresh();
+        ref.read(cardsViewModelProvider.notifier).reload();
+        ref.read(categoriesViewModelProvider.notifier).refresh();
         context.pop();
       }
     });
@@ -37,11 +34,15 @@ class AddTransactionScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: colors.background,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: colors.textPrimary, size: 18),
+          icon: Icon(Icons.arrow_back_ios_new,
+              color: colors.textPrimary, size: 18),
           onPressed: () => context.pop(),
         ),
         title: Text('Nova transação',
-            style: TextStyle(color: colors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
+            style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w700)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -64,14 +65,18 @@ class AddTransactionScreen extends ConsumerWidget {
                           duration: const Duration(milliseconds: 150),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: isExpense ? AppColors.expense : Colors.transparent,
+                            color: isExpense
+                                ? AppColors.expense
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             'Despesa',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: isExpense ? Colors.white : colors.textSecondary,
+                              color: isExpense
+                                  ? Colors.white
+                                  : colors.textSecondary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -85,14 +90,18 @@ class AddTransactionScreen extends ConsumerWidget {
                           duration: const Duration(milliseconds: 150),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: !isExpense ? AppColors.income : Colors.transparent,
+                            color: !isExpense
+                                ? AppColors.income
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             'Receita',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: !isExpense ? Colors.white : colors.textSecondary,
+                              color: !isExpense
+                                  ? Colors.white
+                                  : colors.textSecondary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -122,10 +131,10 @@ class AddTransactionScreen extends ConsumerWidget {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: MockData.categories.length,
+                itemCount: state.categories.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (_, i) {
-                  final cat = MockData.categories[i];
+                  final cat = state.categories[i];
                   return CategoryChip(
                     category: cat,
                     isSelected: state.selectedCategoryId == cat.id,
@@ -144,7 +153,8 @@ class AddTransactionScreen extends ConsumerWidget {
                 onChanged: vm.setDescription,
                 decoration: InputDecoration(
                   hintText: 'Ex: Supermercado, restaurante...',
-                  prefixIcon: Icon(Icons.edit_outlined, color: colors.textSecondary, size: 18),
+                  prefixIcon: Icon(Icons.edit_outlined,
+                      color: colors.textSecondary, size: 18),
                 ),
               ),
             ),
@@ -156,9 +166,12 @@ class AddTransactionScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    Icon(Icons.credit_card, color: colors.textSecondary, size: 16),
+                    Icon(Icons.credit_card,
+                        color: colors.textSecondary, size: 16),
                     const SizedBox(width: 6),
-                    Text('Pagar com:', style: TextStyle(color: colors.textSecondary, fontSize: 13)),
+                    Text('Pagar com:',
+                        style: TextStyle(
+                            color: colors.textSecondary, fontSize: 13)),
                   ],
                 ),
               ),
@@ -177,7 +190,8 @@ class AddTransactionScreen extends ConsumerWidget {
                       onTap: () => vm.selectCard(card.id),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? card.color.withValues(alpha: 0.15)
@@ -190,14 +204,19 @@ class AddTransactionScreen extends ConsumerWidget {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.credit_card, color: card.color, size: 14),
+                            Icon(Icons.credit_card,
+                                color: card.color, size: 14),
                             const SizedBox(width: 6),
                             Text(
                               card.name,
                               style: TextStyle(
-                                color: isSelected ? card.color : colors.textSecondary,
+                                color: isSelected
+                                    ? card.color
+                                    : colors.textSecondary,
                                 fontSize: 13,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
                               ),
                             ),
                           ],
@@ -209,6 +228,19 @@ class AddTransactionScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
             ],
+
+            if (state.errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                child: Text(
+                  state.errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.expense,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
 
             // Keypad
             Expanded(
@@ -250,17 +282,20 @@ class AddTransactionScreen extends ConsumerWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: accentColor,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   child: state.status == AddTransactionStatus.loading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2),
                         )
                       : Text(
                           isExpense ? 'Registrar despesa' : 'Registrar receita',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600),
                         ),
                 ),
               ),

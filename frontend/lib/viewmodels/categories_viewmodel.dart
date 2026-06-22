@@ -1,5 +1,4 @@
 import 'package:dinero/models/category.dart';
-import 'package:dinero/models/transaction.dart';
 import 'package:dinero/repositories/interfaces/i_category_repository.dart';
 import 'package:dinero/repositories/interfaces/i_transaction_repository.dart';
 import 'package:flutter/material.dart';
@@ -52,14 +51,24 @@ class CategoriesViewModel extends StateNotifier<CategoriesState> {
   }
 
   static const _defaultCategories = [
-    {'name': 'Moradia',     'emoji': '🏠', 'color': 0xFF3B82F6, 'budget': 2500.0},
-    {'name': 'Alimentação', 'emoji': '🍔', 'color': 0xFFF97316, 'budget': 1000.0},
-    {'name': 'Transporte',  'emoji': '🚗', 'color': 0xFF22C55E, 'budget': 500.0},
-    {'name': 'Lazer',       'emoji': '🎮', 'color': 0xFFA855F7, 'budget': 400.0},
-    {'name': 'Assinaturas', 'emoji': '📱', 'color': 0xFF06B6D4, 'budget': 350.0},
-    {'name': 'Saúde',       'emoji': '❤️', 'color': 0xFFEC4899, 'budget': 300.0},
-    {'name': 'Educação',    'emoji': '📚', 'color': 0xFFF59E0B, 'budget': 200.0},
-    {'name': 'Outros',      'emoji': '💼', 'color': 0xFF64748B, 'budget': null},
+    {'name': 'Moradia', 'emoji': '🏠', 'color': 0xFF3B82F6, 'budget': 2500.0},
+    {
+      'name': 'Alimentação',
+      'emoji': '🍔',
+      'color': 0xFFF97316,
+      'budget': 1000.0
+    },
+    {'name': 'Transporte', 'emoji': '🚗', 'color': 0xFF22C55E, 'budget': 500.0},
+    {'name': 'Lazer', 'emoji': '🎮', 'color': 0xFFA855F7, 'budget': 400.0},
+    {
+      'name': 'Assinaturas',
+      'emoji': '📱',
+      'color': 0xFF06B6D4,
+      'budget': 350.0
+    },
+    {'name': 'Saúde', 'emoji': '❤️', 'color': 0xFFEC4899, 'budget': 300.0},
+    {'name': 'Educação', 'emoji': '📚', 'color': 0xFFF59E0B, 'budget': 200.0},
+    {'name': 'Outros', 'emoji': '💼', 'color': 0xFF64748B, 'budget': null},
   ];
 
   Future<void> _load() async {
@@ -71,17 +80,7 @@ class CategoriesViewModel extends StateNotifier<CategoriesState> {
       categories = await _categoryRepo.getAll();
     }
 
-    final transactions = await _transactionRepo.getAll();
-    final now = DateTime.now();
-
-    final Map<String, double> spentMap = {};
-    for (final t in transactions) {
-      if (t.type == TransactionType.expense &&
-          t.date.year == now.year &&
-          t.date.month == now.month) {
-        spentMap[t.categoryId] = (spentMap[t.categoryId] ?? 0) + t.valueInBrl;
-      }
-    }
+    final spentMap = await _transactionRepo.getMonthlySpentByCategories();
 
     final stats = categories.map((c) {
       return CategoryStat(
@@ -92,7 +91,8 @@ class CategoriesViewModel extends StateNotifier<CategoriesState> {
     }).toList();
 
     final totalSpent = spentMap.values.fold(0.0, (a, b) => a + b);
-    state = state.copyWith(stats: stats, totalSpent: totalSpent, isLoading: false);
+    state =
+        state.copyWith(stats: stats, totalSpent: totalSpent, isLoading: false);
   }
 
   Future<void> _seedDefaults() async {

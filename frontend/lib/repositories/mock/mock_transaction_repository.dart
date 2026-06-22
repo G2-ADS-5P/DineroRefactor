@@ -6,8 +6,8 @@ class MockTransactionRepository implements ITransactionRepository {
   final List<Transaction> _data = List.from(MockData.transactions);
 
   @override
-  Future<List<Transaction>> getAll() async => List.from(_data)
-    ..sort((a, b) => b.date.compareTo(a.date));
+  Future<List<Transaction>> getAll() async =>
+      List.from(_data)..sort((a, b) => b.date.compareTo(a.date));
 
   @override
   Future<void> save(Transaction transaction) async {
@@ -74,5 +74,20 @@ class MockTransactionRepository implements ITransactionRepository {
       }
     }
     return total;
+  }
+
+  @override
+  Future<Map<String, double>> getMonthlySpentByCategories() async {
+    final now = DateTime.now();
+    final totals = <String, double>{};
+    for (final transaction in await getAll()) {
+      if (transaction.type == TransactionType.expense &&
+          transaction.date.year == now.year &&
+          transaction.date.month == now.month) {
+        totals[transaction.categoryId] =
+            (totals[transaction.categoryId] ?? 0) + transaction.valueInBrl;
+      }
+    }
+    return totals;
   }
 }

@@ -31,22 +31,35 @@ class AssetDetailState {
 
 class AssetDetailViewModel extends StateNotifier<AssetDetailState> {
   final IAssetRepository _repo;
+  String? _activeLoadKey;
+  int _loadRequestId = 0;
 
   AssetDetailViewModel(this._repo) : super(const AssetDetailState());
 
+  String? get errorMessage => state.errorMessage;
+
   Future<void> load(String id, {bool marketAsset = false}) async {
+    final loadKey = '$id:$marketAsset';
+    if (_activeLoadKey == loadKey) return;
+
+    _activeLoadKey = loadKey;
+    final requestId = ++_loadRequestId;
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       final asset = marketAsset
           ? await _repo.getMarketAssetById(id)
           : await _repo.getById(id);
+      if (requestId != _loadRequestId) return;
       state = state.copyWith(
         asset: asset,
         isLoading: false,
         errorMessage: null,
       );
     } catch (e) {
+      if (requestId != _loadRequestId) return;
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
+    } finally {
+      if (requestId == _loadRequestId) _activeLoadKey = null;
     }
   }
 

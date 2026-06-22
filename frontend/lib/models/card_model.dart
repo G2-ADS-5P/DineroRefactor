@@ -10,6 +10,7 @@ class CardModel {
   final double? creditLimit;
   final String network;
   final bool isDebit;
+  final bool isOpenFinance;
 
   const CardModel({
     required this.id,
@@ -21,5 +22,6 @@ class CardModel {
     required this.network,
     this.creditLimit,
     this.isDebit = false,
+    this.isOpenFinance = false,
   });
 }
