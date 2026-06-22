@@ -22,6 +22,8 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(settingsViewModelProvider);
     final user = state.user;
+    final themeMode = ref.watch(themeProvider);
+    final isDark = themeMode == ThemeMode.dark;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -92,7 +94,18 @@ class SettingsScreen extends ConsumerWidget {
             _SettingsGroup(items: [
               _SettingsItem(icon: Icons.workspace_premium_outlined, label: 'Plano / Assinatura', onTap: () => context.push('/config/assinatura')),
               _SettingsItem(icon: Icons.currency_exchange, label: 'Moeda padrão', trailing: Text(state.defaultCurrency, style: const TextStyle(color: AppColors.textSecondary)), onTap: () => context.push('/config/moedas')),
-              _SettingsItem(icon: Icons.dark_mode_outlined, label: 'Tema escuro', trailing: Switch(value: true, onChanged: null, activeColor: AppColors.primary), onTap: () {}),
+              _SettingsItem(
+                icon: Icons.dark_mode_outlined,
+                label: 'Tema escuro',
+                trailing: Switch(
+                  value: isDark,
+                  onChanged: (v) => ref.read(themeProvider.notifier).state =
+                      v ? ThemeMode.dark : ThemeMode.light,
+                  activeThumbColor: AppColors.primary,
+                ),
+                onTap: () => ref.read(themeProvider.notifier).state =
+                    isDark ? ThemeMode.light : ThemeMode.dark,
+              ),
             ]),
             const SizedBox(height: 20),
 

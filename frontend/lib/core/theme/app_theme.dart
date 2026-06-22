@@ -3,6 +3,40 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTheme {
+  static ThemeData get light => ThemeData(
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: const Color(0xFFF4F6F8),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          brightness: Brightness.light,
+          surface: Colors.white,
+        ),
+        textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFF4F6F8),
+          foregroundColor: Color(0xFF111111),
+          elevation: 0,
+        ),
+        cardTheme: CardThemeData(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFE0E0E0)),
+          ),
+          elevation: 0,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+        ),
+      );
+
   static ThemeData get dark => ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: AppColors.background,

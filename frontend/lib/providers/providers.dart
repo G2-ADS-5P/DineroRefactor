@@ -39,7 +39,11 @@ import 'package:dinero/viewmodels/portfolio_viewmodel.dart';
 import 'package:dinero/viewmodels/settings_viewmodel.dart';
 import 'package:dinero/viewmodels/subscription_viewmodel.dart';
 import 'package:dinero/viewmodels/transactions_viewmodel.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Tema do app (escuro por padrão)
+final themeProvider = StateProvider<ThemeMode>((_) => ThemeMode.dark);
 
 // Financial network stack (http package, in-memory token — PIID-67)
 final tokenStorageProvider = Provider<TokenStorage>((_) => TokenStorage());
