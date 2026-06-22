@@ -1,9 +1,9 @@
 import { pgEnum, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
 
-// TODO: migration needed — remove "FREE" from portfolio_access_plan enum in the database
 export const portfolioAccessPlanEnum = pgEnum("portfolio_access_plan", [
   "TRIAL",
   "PRO",
+  "FREE",
 ]);
 
 export const portfolioAccessStatusEnum = pgEnum("portfolio_access_status", [
