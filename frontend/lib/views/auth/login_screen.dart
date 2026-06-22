@@ -107,6 +107,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       )
                     : const Text('Entrar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => context.go('/register'),
+                child: const Text(
+                  'Não tem conta? Criar conta',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                ),
+              ),
               const Spacer(),
             ],
           ),

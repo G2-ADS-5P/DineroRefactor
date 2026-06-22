@@ -36,6 +36,9 @@ class HttpAuthRepository implements IAuthRepository {
       );
       return _toAuthResult(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
+      if (e.response?.statusCode == 409) {
+        throw const ApiException('E-mail já cadastrado', statusCode: 409);
+      }
       throw _client.toApiException(e);
     }
   }
