@@ -1,6 +1,7 @@
 import 'package:dinero/providers/providers.dart';
 import 'package:dinero/views/assets/asset_detail_screen.dart';
 import 'package:dinero/views/auth/login_screen.dart';
+import 'package:dinero/views/auth/register_screen.dart';
 import 'package:dinero/views/cards/cards_screen.dart';
 import 'package:dinero/views/categories/categories_screen.dart';
 import 'package:dinero/views/categories/category_detail_screen.dart';
@@ -26,13 +27,15 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: authState.isAuthenticated ? '/' : '/login',
     redirect: (context, state) {
       final isAuth = ref.read(authViewModelProvider).isAuthenticated;
-      final isLoginPage = state.matchedLocation == '/login';
-      if (!isAuth && !isLoginPage) return '/login';
-      if (isAuth && isLoginPage) return '/';
+      final isAuthRoute = state.matchedLocation == '/login'
+          || state.matchedLocation == '/register';
+      if (!isAuth && !isAuthRoute) return '/login';
+      if (isAuth && isAuthRoute) return '/';
       return null;
     },
     routes: [
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
+      GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
       StatefulShellRoute.indexedStack(
         builder: (_, __, shell) => MainShell(navigationShell: shell),
         branches: [
