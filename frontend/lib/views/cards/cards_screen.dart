@@ -10,6 +10,28 @@ import 'package:intl/intl.dart';
 class CardsScreen extends ConsumerWidget {
   const CardsScreen({super.key});
 
+  void _showAddDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (_) => _AddCardDialog(
+        onAdd: ({
+          required name,
+          required brand,
+          required lastDigits,
+          required creditLimit,
+          required dueDay,
+        }) =>
+            ref.read(cardsViewModelProvider.notifier).addCard(
+                  name: name,
+                  brand: brand,
+                  lastDigits: lastDigits,
+                  creditLimit: creditLimit,
+                  dueDay: dueDay,
+                ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(cardsViewModelProvider);
@@ -19,24 +41,195 @@ class CardsScreen extends ConsumerWidget {
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 12),
-          child: Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceAlt,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.border),
+          child: GestureDetector(
+            onTap: () => _showAddDialog(context, ref),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Icon(Icons.add, color: AppColors.textPrimary, size: 20),
             ),
-            child: const Icon(Icons.add, color: AppColors.textPrimary, size: 20),
           ),
         ),
       ],
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: state.cards.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 14),
-        itemBuilder: (_, i) => _CardItem(card: state.cards[i]),
+      body: state.isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : state.cards.isEmpty
+              ? const Center(
+                  child: Text('Nenhum cartão cadastrado',
+                      style: TextStyle(color: AppColors.textSecondary)),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: state.cards.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 14),
+                  itemBuilder: (_, i) => _CardItem(card: state.cards[i]),
+                ),
+    );
+  }
+}
+
+class _AddCardDialog extends StatefulWidget {
+  final Future<void> Function({
+    required String name,
+    required String brand,
+    required String lastDigits,
+    required double creditLimit,
+    required int dueDay,
+  }) onAdd;
+
+  const _AddCardDialog({required this.onAdd});
+
+  @override
+  State<_AddCardDialog> createState() => _AddCardDialogState();
+}
+
+class _AddCardDialogState extends State<_AddCardDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _lastDigitsController = TextEditingController();
+  final _limitController = TextEditingController();
+  final _dueDayController = TextEditingController();
+  String _brand = 'MASTERCARD';
+  bool _loading = false;
+
+  static const _brands = ['MASTERCARD', 'VISA', 'ELO'];
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _lastDigitsController.dispose();
+    _limitController.dispose();
+    _dueDayController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _loading = true);
+    try {
+      await widget.onAdd(
+        name: _nameController.text.trim(),
+        brand: _brand,
+        lastDigits: _lastDigitsController.text.trim(),
+        creditLimit: double.parse(_limitController.text.replaceAll(',', '.')),
+        dueDay: int.parse(_dueDayController.text.trim()),
+      );
+      if (mounted) Navigator.of(context).pop();
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  InputDecoration _dec(String label) => InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: AppColors.textSecondary),
+        filled: true,
+        fillColor: AppColors.surfaceAlt,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text('Novo cartão', style: TextStyle(color: AppColors.textPrimary)),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _nameController,
+                style: const TextStyle(color: AppColors.textPrimary),
+                decoration: _dec('Nome do cartão'),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Obrigatório' : null,
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: _brand,
+                dropdownColor: AppColors.surfaceAlt,
+                style: const TextStyle(color: AppColors.textPrimary),
+                decoration: _dec('Bandeira'),
+                items: _brands
+                    .map((b) => DropdownMenuItem(value: b, child: Text(b)))
+                    .toList(),
+                onChanged: (v) => setState(() => _brand = v!),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _lastDigitsController,
+                style: const TextStyle(color: AppColors.textPrimary),
+                decoration: _dec('Últimos 4 dígitos'),
+                keyboardType: TextInputType.number,
+                maxLength: 4,
+                validator: (v) {
+                  if (v == null || v.length != 4) return '4 dígitos';
+                  if (!RegExp(r'^\d{4}$').hasMatch(v)) return 'Apenas números';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _limitController,
+                style: const TextStyle(color: AppColors.textPrimary),
+                decoration: _dec('Limite de crédito (R\$)'),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Obrigatório';
+                  final n = double.tryParse(v.replaceAll(',', '.'));
+                  if (n == null || n <= 0) return 'Valor inválido';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _dueDayController,
+                style: const TextStyle(color: AppColors.textPrimary),
+                decoration: _dec('Dia de vencimento (1-31)'),
+                keyboardType: TextInputType.number,
+                validator: (v) {
+                  final n = int.tryParse(v ?? '');
+                  if (n == null || n < 1 || n > 31) return 'Entre 1 e 31';
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar', style: TextStyle(color: AppColors.textSecondary)),
+        ),
+        ElevatedButton(
+          onPressed: _loading ? null : _submit,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          child: _loading
+              ? const SizedBox(
+                  width: 18, height: 18,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                )
+              : const Text('Salvar'),
+        ),
+      ],
     );
   }
 }

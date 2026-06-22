@@ -25,4 +25,21 @@ class CardsViewModel extends StateNotifier<CardsState> {
     final cards = await _repo.getAll();
     state = state.copyWith(cards: cards, isLoading: false);
   }
+
+  Future<void> addCard({
+    required String name,
+    required String brand,
+    required String lastDigits,
+    required double creditLimit,
+    required int dueDay,
+  }) async {
+    final card = await _repo.create(
+      name: name,
+      brand: brand,
+      lastDigits: lastDigits,
+      creditLimit: creditLimit,
+      dueDay: dueDay,
+    );
+    state = state.copyWith(cards: [...state.cards, card]);
+  }
 }

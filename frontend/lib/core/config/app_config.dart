@@ -10,22 +10,23 @@
 ///   /api/portfolio/   → http://portfolio:4007/v1/
 library app_config;
 
+import 'dart:io';
+
 /// Os 4 microsserviços do backend Dinero.
 enum BackendService { identity, financial, openfinance, portfolio }
 
 class AppConfig {
   AppConfig._();
 
-  /// `false` → dev (http://localhost:PORTA/v1)
+  /// `false` → dev (http://HOST:PORTA/v1)
   /// `true`  → proxy nginx (/api/<servico>)
-  ///
-  /// Mude para `true` quando o Flutter estiver rodando dentro do container
-  /// (ou atrás de um nginx local que encaminhe /api/*).
   static const bool useProxy = false;
 
-  // ---------------------------------------------------------------------------
-  // Portas dev (só usadas quando useProxy == false)
-  // ---------------------------------------------------------------------------
+  // No emulador Android, `localhost` aponta para o próprio dispositivo.
+  // `10.0.2.2` é o alias que redireciona para a máquina host.
+  static String get _host =>
+      Platform.isAndroid ? '10.0.2.2' : 'localhost';
+
   static const Map<BackendService, int> _devPorts = {
     BackendService.identity: 4008,
     BackendService.financial: 4009,
@@ -33,9 +34,6 @@ class AppConfig {
     BackendService.portfolio: 4007,
   };
 
-  // ---------------------------------------------------------------------------
-  // Paths proxy (só usados quando useProxy == true)
-  // ---------------------------------------------------------------------------
   static const Map<BackendService, String> _proxyPaths = {
     BackendService.identity: '/api/identity',
     BackendService.financial: '/api/financial',
@@ -43,19 +41,8 @@ class AppConfig {
     BackendService.portfolio: '/api/portfolio',
   };
 
-  /// Retorna a base URL do serviço, **sem** barra final.
-  ///
-  /// Exemplos:
-  /// ```
-  /// AppConfig.baseUrl(BackendService.financial)
-  ///   → "http://localhost:4009/v1"  (dev)
-  ///   → "/api/financial"            (proxy)
-  /// ```
   static String baseUrl(BackendService service) {
-    if (useProxy) {
-      return _proxyPaths[service]!;
-    }
-    final port = _devPorts[service]!;
-    return 'http://localhost:$port/v1';
+    if (useProxy) return _proxyPaths[service]!;
+    return 'http://$_host:${_devPorts[service]!}/v1';
   }
 }

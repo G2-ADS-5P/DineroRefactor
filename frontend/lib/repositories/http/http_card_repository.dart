@@ -17,6 +17,28 @@ class HttpCardRepository implements ICardRepository {
     return result.items.map(_mapCard).toList();
   }
 
+  @override
+  Future<CardModel> create({
+    required String name,
+    required String brand,
+    required String lastDigits,
+    required double creditLimit,
+    required int dueDay,
+  }) async {
+    final raw = await _client.post(
+      BackendService.financial,
+      '/cards',
+      body: {
+        'name': name,
+        'brand': brand,
+        'lastDigits': lastDigits,
+        'creditLimit': creditLimit,
+        'dueDay': dueDay,
+      },
+    );
+    return _mapCard(ApiClient.unwrapItem(raw));
+  }
+
   // ---------------------------------------------------------------------------
 
   CardModel _mapCard(Map<String, dynamic> j) {
