@@ -7,6 +7,7 @@ class Category {
   final Color color;
   final bool isDefault;
   final double? budgetAmount;
+  final String type; // 'income' | 'expense'
 
   const Category({
     required this.id,
@@ -15,5 +16,6 @@ class Category {
     required this.color,
     required this.isDefault,
     this.budgetAmount,
+    this.type = 'expense',
   });
 }

@@ -53,7 +53,7 @@ class CategoriesViewModel extends StateNotifier<CategoriesState> {
   Future<void> _load() async {
     final categories = await _categoryRepo.getAll();
     final transactions = await _transactionRepo.getAll();
-    final now = DateTime(2026, 3, 24);
+    final now = DateTime.now();
 
     final Map<String, double> spentMap = {};
     for (final t in transactions) {
@@ -77,12 +77,12 @@ class CategoriesViewModel extends StateNotifier<CategoriesState> {
     state = state.copyWith(stats: stats, totalSpent: totalSpent, isLoading: false);
   }
 
-  void addCategory(Category category) {
-    final stat = CategoryStat(
-      category: category,
-      spent: 0,
-      budget: category.budgetAmount,
-    );
-    state = state.copyWith(stats: [...state.stats, stat]);
+  Future<void> refresh() => _load();
+
+  Future<void> createCategory(Category category) async {
+    try {
+      await _categoryRepo.create(category);
+      await _load();
+    } catch (_) {}
   }
 }

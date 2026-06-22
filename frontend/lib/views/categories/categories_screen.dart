@@ -7,6 +7,7 @@ import 'package:dinero/widgets/common/budget_progress_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 class CategoriesScreen extends ConsumerStatefulWidget {
   const CategoriesScreen({super.key});
@@ -54,7 +55,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => _NewCategorySheet(
         onSave: (category) {
-          ref.read(categoriesViewModelProvider.notifier).addCategory(category);
+          ref.read(categoriesViewModelProvider.notifier).createCategory(category);
         },
       ),
     );
@@ -105,9 +106,9 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                     totalSpent: state.totalSpent,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Março 2026',
-                    style: TextStyle(
+                  Text(
+                    DateFormat('MMMM yyyy', 'pt_BR').format(DateTime.now()),
+                    style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -218,6 +219,7 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
 
   String _selectedEmoji = '🎯';
   Color _selectedColor = const Color(0xFF3B82F6);
+  String _selectedType = 'expense';
 
   static const _emojis = [
     '🎯', '🎨', '🐕', '✈️', '🎁', '💼', '🏋️', '🛒',
@@ -257,12 +259,13 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
     if (name.isEmpty) return;
 
     final category = Category(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: '',
       name: name,
       emoji: _selectedEmoji,
       color: _selectedColor,
       isDefault: false,
       budgetAmount: _parsedBudget,
+      type: _selectedType,
     );
 
     widget.onSave(category);
@@ -380,6 +383,70 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                                 ),
                               ),
                             ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    // Type toggle
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceAlt,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _selectedType = 'expense'),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: _selectedType == 'expense'
+                                      ? AppColors.expense
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  'Despesa',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: _selectedType == 'expense'
+                                        ? Colors.white
+                                        : AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _selectedType = 'income'),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: _selectedType == 'income'
+                                      ? AppColors.income
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  'Receita',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: _selectedType == 'income'
+                                        ? Colors.white
+                                        : AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
