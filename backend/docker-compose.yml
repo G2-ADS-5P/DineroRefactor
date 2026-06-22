@@ -89,7 +89,7 @@ services:
       JWT_SECRET: super-secret
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/dinero_portfolio
       RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
-      BRAPI_TOKEN: 3PH6EMu5D4bL6hZ5d9q6we
+      BRAPI_TOKEN: fh3HFHiU1EGqUnU1FH2a7m
     ports:
       - "4007:4007"
     command: sh -c "npm run db:migrate && npm run start:prod"

@@ -25,6 +25,7 @@ import 'package:dinero/repositories/interfaces/i_transaction_repository.dart';
 import 'package:dinero/repositories/interfaces/i_user_repository.dart';
 import 'package:dinero/repositories/mock/mock_currency_repository.dart';
 import 'package:dinero/viewmodels/add_transaction_viewmodel.dart';
+import 'package:dinero/viewmodels/asset_cache_notifier.dart';
 import 'package:dinero/viewmodels/asset_detail_viewmodel.dart';
 import 'package:dinero/viewmodels/asset_search_viewmodel.dart';
 import 'package:dinero/viewmodels/auth_viewmodel.dart';
@@ -97,6 +98,12 @@ final cardRepositoryProvider = Provider<ICardRepository>(
 );
 final assetRepositoryProvider = Provider<IAssetRepository>(
   (ref) => HttpAssetRepository(ref.watch(portfolioApiClientProvider)),
+);
+
+// Cache de ativos: carregado no login, atualizado a cada 5 min em background
+final assetCacheProvider =
+    StateNotifierProvider<AssetCacheNotifier, AssetCacheState>(
+  (ref) => AssetCacheNotifier(ref.watch(assetRepositoryProvider)),
 );
 final currencyRepositoryProvider = Provider<ICurrencyRepository>(
   (_) => MockCurrencyRepository(),
@@ -194,7 +201,10 @@ final assetDetailViewModelProvider =
 
 final assetSearchViewModelProvider =
     StateNotifierProvider.autoDispose<AssetSearchViewModel, AssetSearchState>(
-      (ref) => AssetSearchViewModel(ref.watch(assetRepositoryProvider)),
+      (ref) => AssetSearchViewModel(
+        ref.watch(assetRepositoryProvider),
+        ref.watch(assetCacheProvider.notifier),
+      ),
     );
 
 final subscriptionViewModelProvider =

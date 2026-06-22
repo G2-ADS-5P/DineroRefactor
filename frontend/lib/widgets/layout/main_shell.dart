@@ -1,14 +1,20 @@
 import 'package:dinero/core/theme/app_colors.dart';
+import 'package:dinero/providers/providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class MainShell extends StatelessWidget {
+class MainShell extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
   const MainShell({super.key, required this.navigationShell});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Inicializa o cache de ativos assim que o usuário está autenticado.
+    // O provider já dispara o carregamento em background ao ser criado.
+    ref.watch(assetCacheProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: navigationShell,
