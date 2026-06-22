@@ -7,6 +7,7 @@ class PortfolioLineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final spots = [
       const FlSpot(0, 18000),
       const FlSpot(1, 19500),
@@ -30,8 +31,8 @@ class PortfolioLineChart extends StatelessWidget {
             show: true,
             drawVerticalLine: false,
             horizontalInterval: 3000,
-            getDrawingHorizontalLine: (_) => const FlLine(
-              color: AppColors.border,
+            getDrawingHorizontalLine: (_) => FlLine(
+              color: colors.border,
               strokeWidth: 0.5,
             ),
           ),
@@ -49,7 +50,7 @@ class PortfolioLineChart extends StatelessWidget {
                   if (idx < 0 || idx >= months.length) return const SizedBox.shrink();
                   return Text(
                     months[idx],
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
+                    style: TextStyle(color: colors.textMuted, fontSize: 10),
                   );
                 },
               ),

@@ -14,6 +14,7 @@ class CategoryDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
     final vm = ref.read(categoryDetailViewModelProvider.notifier);
     final state = ref.watch(categoryDetailViewModelProvider);
 
@@ -22,9 +23,9 @@ class CategoryDetailScreen extends ConsumerWidget {
     });
 
     if (state.isLoading) {
-      return const Scaffold(
-        backgroundColor: AppColors.background,
-        body: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      return Scaffold(
+        backgroundColor: colors.background,
+        body: const Center(child: CircularProgressIndicator(color: AppColors.primary)),
       );
     }
 
@@ -38,24 +39,24 @@ class CategoryDetailScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: colors.border),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Total gasto', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                Text('Total gasto', style: TextStyle(color: colors.textSecondary, fontSize: 12)),
                 const SizedBox(height: 4),
                 Text(CurrencyFormatter.format(state.totalSpent),
-                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 28, fontWeight: FontWeight.w700)),
+                    style: TextStyle(color: colors.textPrimary, fontSize: 28, fontWeight: FontWeight.w700)),
                 if (state.budget != null) ...[
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Orçamento: ${CurrencyFormatter.format(state.budget!)}',
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                          style: TextStyle(color: colors.textSecondary, fontSize: 12)),
                       Text('${(state.percent * 100).toStringAsFixed(0)}%',
                           style: TextStyle(
                               color: state.percent >= 1.0 ? AppColors.danger : state.percent >= 0.8 ? AppColors.warning : cat.color,
@@ -73,13 +74,13 @@ class CategoryDetailScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 20),
-          const Text('Transações', style: TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w700)),
+          Text('Transações', style: TextStyle(color: colors.textPrimary, fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: colors.border),
             ),
             child: Column(
               children: state.transactions

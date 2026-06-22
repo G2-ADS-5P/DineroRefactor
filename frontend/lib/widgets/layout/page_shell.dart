@@ -17,14 +17,15 @@ class PageShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         title: Text(
           title,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: colors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -32,7 +33,7 @@ class PageShell extends StatelessWidget {
         centerTitle: true,
         leading: showBackButton
             ? IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 18),
+                icon: Icon(Icons.arrow_back_ios_new, color: colors.textPrimary, size: 18),
                 onPressed: () => Navigator.of(context).pop(),
               )
             : null,

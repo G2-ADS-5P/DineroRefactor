@@ -54,7 +54,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => _NewCategorySheet(
         onSave: (category) {
-          ref.read(categoriesViewModelProvider.notifier).addCategory(category);
+          ref.read(categoriesViewModelProvider.notifier).createCategory(category);
         },
       ),
     );
@@ -62,10 +62,11 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final state = ref.watch(categoriesViewModelProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: state.isLoading
             ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
@@ -76,10 +77,10 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Categorias',
                         style: TextStyle(
-                          color: AppColors.textPrimary,
+                          color: colors.textPrimary,
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                         ),
@@ -105,24 +106,63 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                     totalSpent: state.totalSpent,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Março 2026',
                     style: TextStyle(
-                      color: AppColors.textPrimary,
+                      color: colors.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  ...state.stats.map((s) => GestureDetector(
+                  ...state.stats.map((s) => Dismissible(
+                        key: ValueKey(s.category.id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          decoration: BoxDecoration(
+                            color: AppColors.expense.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          alignment: Alignment.centerRight,
+                          child: const Icon(Icons.delete_outline, color: AppColors.expense),
+                        ),
+                        confirmDismiss: (_) async {
+                          return await showDialog<bool>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              backgroundColor: colors.surface,
+                              title: Text('Excluir categoria', style: TextStyle(color: colors.textPrimary)),
+                              content: Text(
+                                'Deseja excluir "${s.category.name}"?',
+                                style: TextStyle(color: colors.textSecondary),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: Text('Cancelar', style: TextStyle(color: colors.textSecondary)),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Excluir', style: TextStyle(color: AppColors.expense)),
+                                ),
+                              ],
+                            ),
+                          ) ?? false;
+                        },
+                        onDismissed: (_) => ref
+                            .read(categoriesViewModelProvider.notifier)
+                            .deleteCategory(s.category.id),
+                        child: GestureDetector(
                         onTap: () => context.push('/categorias/${s.category.id}'),
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppColors.surface,
+                            color: colors.surface,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(color: colors.border),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,16 +178,16 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                   Expanded(
                                     child: Text(
                                       s.category.name,
-                                      style: const TextStyle(
-                                        color: AppColors.textPrimary,
+                                      style: TextStyle(
+                                        color: colors.textPrimary,
                                         fontSize: 15,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ),
-                                  const Icon(
+                                  Icon(
                                     Icons.chevron_right,
-                                    color: AppColors.textMuted,
+                                    color: colors.textMuted,
                                     size: 18,
                                   ),
                                 ],
@@ -161,8 +201,8 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                     s.budget != null
                                         ? '${CurrencyFormatter.format(s.spent)} / ${CurrencyFormatter.format(s.budget!)}'
                                         : CurrencyFormatter.format(s.spent),
-                                    style: const TextStyle(
-                                      color: AppColors.textSecondary,
+                                    style: TextStyle(
+                                      color: colors.textSecondary,
                                       fontSize: 12,
                                     ),
                                   ),
@@ -195,7 +235,8 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                             ],
                           ),
                         ),
-                      )),
+                      ),
+                    )),
                 ],
               ),
       ),
@@ -271,6 +312,7 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final previewName =
         _nameController.text.isEmpty ? 'Nome da categoria' : _nameController.text;
     final budgetVal = _parsedBudget;
@@ -294,7 +336,7 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.border,
+                color: colors.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -308,38 +350,37 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Nova categoria',
                           style: TextStyle(
-                            color: AppColors.textPrimary,
+                            color: colors.textPrimary,
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         GestureDetector(
                           onTap: () => Navigator.of(context).pop(),
-                          child: const Icon(
+                          child: Icon(
                             Icons.close,
-                            color: AppColors.textSecondary,
+                            color: colors.textSecondary,
                             size: 22,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'Personalize o ícone, nome, cor e orçamento.',
-                      style:
-                          TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                      style: TextStyle(color: colors.textSecondary, fontSize: 13),
                     ),
                     const SizedBox(height: 16),
                     // Preview card
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: colors.surface,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: colors.border),
                       ),
                       child: Row(
                         children: [
@@ -365,8 +406,8 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                             children: [
                               Text(
                                 previewName,
-                                style: const TextStyle(
-                                  color: AppColors.textPrimary,
+                                style: TextStyle(
+                                  color: colors.textPrimary,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -374,8 +415,8 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                               const SizedBox(height: 2),
                               Text(
                                 budgetText,
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
+                                style: TextStyle(
+                                  color: colors.textSecondary,
                                   fontSize: 12,
                                 ),
                               ),
@@ -386,30 +427,29 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                     ),
                     const SizedBox(height: 20),
                     // Name field
-                    const Text(
+                    Text(
                       'Nome',
-                      style:
-                          TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                      style: TextStyle(color: colors.textSecondary, fontSize: 13),
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _nameController,
                       onChanged: (_) => setState(() {}),
-                      style: const TextStyle(color: AppColors.textPrimary),
+                      style: TextStyle(color: colors.textPrimary),
                       decoration: InputDecoration(
                         hintText: 'Ex: Viagens, Pet, Freelance...',
-                        hintStyle: const TextStyle(color: AppColors.textMuted),
+                        hintStyle: TextStyle(color: colors.textMuted),
                         filled: true,
-                        fillColor: AppColors.surfaceInput,
+                        fillColor: colors.surfaceInput,
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: AppColors.border),
+                          borderSide: BorderSide(color: colors.border),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: AppColors.border),
+                          borderSide: BorderSide(color: colors.border),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -420,10 +460,9 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                     ),
                     const SizedBox(height: 20),
                     // Icon grid
-                    const Text(
+                    Text(
                       'Ícone',
-                      style:
-                          TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                      style: TextStyle(color: colors.textSecondary, fontSize: 13),
                     ),
                     const SizedBox(height: 10),
                     Wrap(
@@ -439,7 +478,7 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? _selectedColor.withValues(alpha: 0.2)
-                                  : AppColors.surfaceAlt,
+                                  : colors.surfaceAlt,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: isSelected
@@ -460,10 +499,9 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                     ),
                     const SizedBox(height: 20),
                     // Color picker
-                    const Text(
+                    Text(
                       'Cor da tag',
-                      style:
-                          TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                      style: TextStyle(color: colors.textSecondary, fontSize: 13),
                     ),
                     const SizedBox(height: 10),
                     Wrap(
@@ -498,10 +536,9 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                     ),
                     const SizedBox(height: 20),
                     // Budget field
-                    const Text(
+                    Text(
                       'Orçamento mensal',
-                      style:
-                          TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                      style: TextStyle(color: colors.textSecondary, fontSize: 13),
                     ),
                     const SizedBox(height: 8),
                     TextField(
@@ -509,24 +546,23 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                       onChanged: (_) => setState(() {}),
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
-                      style: const TextStyle(color: AppColors.textPrimary),
+                      style: TextStyle(color: colors.textPrimary),
                       decoration: InputDecoration(
                         prefixText: 'R\$  ',
-                        prefixStyle:
-                            const TextStyle(color: AppColors.textSecondary),
+                        prefixStyle: TextStyle(color: colors.textSecondary),
                         hintText: '0,00',
-                        hintStyle: const TextStyle(color: AppColors.textMuted),
+                        hintStyle: TextStyle(color: colors.textMuted),
                         filled: true,
-                        fillColor: AppColors.surfaceInput,
+                        fillColor: colors.surfaceInput,
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: AppColors.border),
+                          borderSide: BorderSide(color: colors.border),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: AppColors.border),
+                          borderSide: BorderSide(color: colors.border),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),

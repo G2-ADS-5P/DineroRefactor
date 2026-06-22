@@ -1,79 +1,150 @@
-import 'package:dinero/core/constants/mock_data.dart';
 import 'package:dinero/models/asset.dart';
+import 'package:dinero/repositories/interfaces/i_asset_repository.dart';
+import 'package:dinero/viewmodels/asset_cache_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AssetSearchState {
-  final List<Asset> allAssets;
   final List<Asset> filteredAssets;
   final String query;
   final String selectedFilter;
+  final bool isLoading;
+  final bool isAdding;
+  final String? errorMessage;
 
   const AssetSearchState({
-    required this.allAssets,
-    required this.filteredAssets,
+    this.filteredAssets = const [],
     this.query = '',
     this.selectedFilter = 'Todos',
+    this.isLoading = false,
+    this.isAdding = false,
+    this.errorMessage,
   });
 
   AssetSearchState copyWith({
-    List<Asset>? allAssets,
     List<Asset>? filteredAssets,
     String? query,
     String? selectedFilter,
-  }) {
-    return AssetSearchState(
-      allAssets: allAssets ?? this.allAssets,
-      filteredAssets: filteredAssets ?? this.filteredAssets,
-      query: query ?? this.query,
-      selectedFilter: selectedFilter ?? this.selectedFilter,
-    );
-  }
+    bool? isLoading,
+    bool? isAdding,
+    String? errorMessage,
+  }) =>
+      AssetSearchState(
+        filteredAssets: filteredAssets ?? this.filteredAssets,
+        query: query ?? this.query,
+        selectedFilter: selectedFilter ?? this.selectedFilter,
+        isLoading: isLoading ?? this.isLoading,
+        isAdding: isAdding ?? this.isAdding,
+        // errorMessage: null por padrão ao não passar = limpa o erro
+        errorMessage: errorMessage,
+      );
 }
 
 class AssetSearchViewModel extends StateNotifier<AssetSearchState> {
-  AssetSearchViewModel()
-      : super(AssetSearchState(
-          allAssets: MockData.searchableAssets,
-          filteredAssets: MockData.searchableAssets,
-        ));
+  final IAssetRepository _repo;
+  final AssetCacheNotifier _cache;
 
+  AssetSearchViewModel(this._repo, this._cache)
+      : super(const AssetSearchState()) {
+    // Exibe imediatamente o que já está no cache (pode ser vazio no início)
+    _updateFromCache();
+  }
+
+  void _updateFromCache() {
+    final filtered = _applyFilters(
+      _cache.state.assets,
+      state.query,
+      state.selectedFilter,
+    );
+    state = state.copyWith(filteredAssets: filtered);
+  }
+
+  // Filtragem local instantânea — sem rede
   void search(String query) {
-    state = state.copyWith(query: query, filteredAssets: _apply(query, state.selectedFilter));
+    final cached = _applyFilters(
+      _cache.state.assets,
+      query,
+      state.selectedFilter,
+    );
+    // Limpa erro anterior ao digitar
+    state = AssetSearchState(
+      filteredAssets: cached,
+      query: query,
+      selectedFilter: state.selectedFilter,
+    );
+
+    // Só vai ao backend se não achou nada com 3+ caracteres
+    if (cached.isEmpty && query.trim().length >= 3) {
+      _searchBackend(query);
+    }
   }
 
   void setFilter(String filter) {
-    state = state.copyWith(selectedFilter: filter, filteredAssets: _apply(state.query, filter));
+    final filtered = _applyFilters(_cache.state.assets, state.query, filter);
+    state = state.copyWith(selectedFilter: filter, filteredAssets: filtered);
   }
 
-  List<Asset> _apply(String query, String filter) {
-    var result = state.allAssets;
+  Future<void> _searchBackend(String query) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      final results = await _repo.search(query: query, limit: 10);
+      _cache.addResults(results);
+      final filtered = _applyFilters(
+        _cache.state.assets,
+        query,
+        state.selectedFilter,
+      );
+      state = state.copyWith(filteredAssets: filtered, isLoading: false);
+    } catch (_) {
+      // Não exibe erro — simplesmente para de carregar
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  Future<bool> addToPortfolio({
+    required Asset asset,
+    required int quantity,
+    required double averagePrice,
+  }) async {
+    state = state.copyWith(isAdding: true, errorMessage: null);
+    try {
+      await _repo.addToPortfolio(
+        ticker: asset.ticker,
+        quantity: quantity,
+        averagePrice: averagePrice,
+      );
+      state = state.copyWith(isAdding: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isAdding: false, errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  List<Asset> _applyFilters(List<Asset> assets, String query, String filter) {
+    var result = assets;
+
+    final q = query.toLowerCase().trim();
+    if (q.isNotEmpty) {
+      result = result.where((a) {
+        return a.ticker.toLowerCase().contains(q) ||
+            a.name.toLowerCase().contains(q);
+      }).toList();
+    }
 
     if (filter != 'Todos') {
-      final type = _filterToType(filter);
+      final typeMap = {
+        'Ações': AssetType.acoes,
+        'FIIs': AssetType.fiis,
+        'BDRs': AssetType.bdrs,
+        'ETFs': AssetType.etfs,
+        'Cripto': AssetType.cripto,
+      };
+      final type = typeMap[filter];
       if (type != null) {
         result = result.where((a) => a.assetType == type).toList();
       }
     }
 
-    if (query.trim().isNotEmpty) {
-      final q = query.trim().toUpperCase();
-      result = result.where((a) {
-        return a.ticker.toUpperCase().contains(q) ||
-            a.name.toUpperCase().contains(q);
-      }).toList();
-    }
-
     return result;
-  }
-
-  AssetType? _filterToType(String filter) {
-    switch (filter) {
-      case 'Ações': return AssetType.acoes;
-      case 'FIIs':  return AssetType.fiis;
-      case 'BDRs':  return AssetType.bdrs;
-      case 'ETFs':  return AssetType.etfs;
-      case 'Cripto': return AssetType.cripto;
-      default: return null;
-    }
   }
 }

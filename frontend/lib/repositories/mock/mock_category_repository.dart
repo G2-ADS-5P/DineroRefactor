@@ -9,6 +9,12 @@ class MockCategoryRepository implements ICategoryRepository {
   Future<List<Category>> getAll() async => MockData.categories;
 
   @override
+  Future<Category> create(Category category) async => category;
+
+  @override
+  Future<void> delete(String id) async {}
+
+  @override
   Future<Budget?> getBudget(String categoryId) async {
     final category = MockData.categories.firstWhere(
       (c) => c.id == categoryId,

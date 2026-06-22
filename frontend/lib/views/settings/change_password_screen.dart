@@ -15,20 +15,21 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: AppColors.textPrimary, size: 18),
+          icon: Icon(Icons.arrow_back_ios_new,
+              color: colors.textPrimary, size: 18),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'Alterar senha',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -134,13 +135,14 @@ class _PasswordField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
+          style: TextStyle(
+            color: colors.textSecondary,
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
@@ -148,14 +150,14 @@ class _PasswordField extends StatelessWidget {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surfaceInput,
+            color: colors.surfaceInput,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: colors.border),
           ),
           child: TextField(
             obscureText: obscure,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              color: colors.textPrimary,
               fontSize: 15,
               letterSpacing: 2,
             ),
@@ -168,7 +170,7 @@ class _PasswordField extends StatelessWidget {
                   obscure
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
-                  color: AppColors.textMuted,
+                  color: colors.textMuted,
                   size: 20,
                 ),
                 onPressed: onToggle,

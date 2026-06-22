@@ -9,14 +9,15 @@ class MainShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: navigationShell,
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
+        decoration: BoxDecoration(
+          color: colors.surface,
           border: Border(
-            top: BorderSide(color: AppColors.border, width: 1),
+            top: BorderSide(color: colors.border, width: 1),
           ),
         ),
         child: SafeArea(
@@ -85,7 +86,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? AppColors.primary : AppColors.textSecondary;
+    final color = isActive ? AppColors.primary : AppColors.of(context).textSecondary;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,

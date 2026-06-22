@@ -1,4 +1,5 @@
 import 'package:dinero/core/theme/app_theme.dart';
+import 'package:dinero/providers/providers.dart';
 import 'package:dinero/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,9 +17,12 @@ class DineroApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final themeMode = ref.watch(themeProvider);
     return MaterialApp.router(
       title: 'Dinero',
-      theme: AppTheme.dark,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: themeMode,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
     );

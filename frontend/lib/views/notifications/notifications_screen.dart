@@ -59,6 +59,7 @@ class _NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final n = notification;
     final iconColor = n.type.color;
 
@@ -67,9 +68,9 @@ class _NotificationCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border, width: 1),
+          border: Border.all(color: colors.border, width: 1),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,7 +94,7 @@ class _NotificationCard extends StatelessWidget {
                   Text(
                     n.title,
                     style: TextStyle(
-                      color: n.isRead ? AppColors.textSecondary : AppColors.textPrimary,
+                      color: n.isRead ? colors.textSecondary : colors.textPrimary,
                       fontSize: 14,
                       fontWeight: n.isRead ? FontWeight.w500 : FontWeight.w700,
                     ),
@@ -101,8 +102,8 @@ class _NotificationCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     n.body,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      color: colors.textSecondary,
                       fontSize: 13,
                       height: 1.4,
                     ),
@@ -110,8 +111,8 @@ class _NotificationCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     n.timeAgo,
-                    style: const TextStyle(
-                      color: AppColors.textMuted,
+                    style: TextStyle(
+                      color: colors.textMuted,
                       fontSize: 11,
                     ),
                   ),

@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { PreferenceService } from "@preferences/application/services/preference.service";
+import { SubscriptionService } from "@subscriptions/application/services/subscription.service";
 import type { PaginatedResult, PaginationParams } from "@shared/infra/hateoas";
 import { CreateUserDto } from "@users/application/dto/create-user.dto";
 import { UpdateUserDto } from "@users/application/dto/update-user.dto";
@@ -27,6 +28,8 @@ export class UserService {
     private readonly userMessagingService: UserMessagingService,
     @Inject(forwardRef(() => PreferenceService))
     private readonly preferenceService: PreferenceService,
+    @Inject(forwardRef(() => SubscriptionService))
+    private readonly subscriptionService: SubscriptionService,
   ) {}
 
   async create(dto: CreateUserDto): Promise<UserResponseDto> {
@@ -49,6 +52,7 @@ export class UserService {
     const created = await this.userRepository.findByEmail(email);
     const response = UserResponseDto.from(created)!;
     await this.preferenceService.createDefault(response.id);
+    await this.subscriptionService.startTrial(response.id);
     await this.userMessagingService.publishUserCreated(response);
     return response;
   }

@@ -24,6 +24,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final authState = ref.watch(authViewModelProvider);
 
     ref.listen(authViewModelProvider, (_, next) {
@@ -31,7 +32,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -51,29 +52,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Seu dinheiro, mais inteligente',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+                style: TextStyle(color: colors.textSecondary, fontSize: 16),
               ),
               const Spacer(),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
+                style: TextStyle(color: colors.textPrimary),
+                decoration: InputDecoration(
                   labelText: 'E-mail',
-                  prefixIcon: Icon(Icons.email_outlined, color: AppColors.textSecondary),
+                  prefixIcon: Icon(Icons.email_outlined, color: colors.textSecondary),
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _passwordController,
                 obscureText: true,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
+                style: TextStyle(color: colors.textPrimary),
+                decoration: InputDecoration(
                   labelText: 'Senha',
-                  prefixIcon: Icon(Icons.lock_outline, color: AppColors.textSecondary),
+                  prefixIcon: Icon(Icons.lock_outline, color: colors.textSecondary),
                 ),
               ),
               const SizedBox(height: 24),

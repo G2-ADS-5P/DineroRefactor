@@ -12,6 +12,7 @@ class AssetRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final isPositive = asset.changePercent >= 0;
     final changeColor = isPositive ? AppColors.income : AppColors.expense;
 
@@ -19,8 +20,8 @@ class AssetRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.border, width: 0.5)),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: colors.border, width: 0.5)),
         ),
         child: Row(
           children: [
@@ -28,14 +29,14 @@ class AssetRow extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.surfaceAlt,
+                color: colors.surfaceAlt,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
                 child: Text(
                   asset.ticker.substring(0, 2),
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
@@ -48,13 +49,13 @@ class AssetRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(asset.ticker,
-                      style: const TextStyle(
-                          color: AppColors.textPrimary,
+                      style: TextStyle(
+                          color: colors.textPrimary,
                           fontSize: 14,
                           fontWeight: FontWeight.w600)),
                   Text(asset.name,
-                      style: const TextStyle(
-                          color: AppColors.textSecondary, fontSize: 12)),
+                      style: TextStyle(
+                          color: colors.textSecondary, fontSize: 12)),
                 ],
               ),
             ),
@@ -70,8 +71,8 @@ class AssetRow extends StatelessWidget {
               children: [
                 Text(
                   CurrencyFormatter.format(asset.currentPrice),
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),

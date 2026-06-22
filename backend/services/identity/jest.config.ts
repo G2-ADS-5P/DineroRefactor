@@ -13,6 +13,7 @@ const config: Config = {
     "^@users/(.*)$": "<rootDir>/src/modules/users/$1",
     "^@auth/(.*)$": "<rootDir>/src/modules/auth/$1",
     "^@preferences/(.*)$": "<rootDir>/src/modules/preferences/$1",
+    "^@subscriptions/(.*)$": "<rootDir>/src/modules/subscriptions/$1",
   },
   transform: {
     "^.+\\.ts$": [

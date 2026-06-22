@@ -17,13 +17,14 @@ class TransactionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final isIncome = transaction.type == TransactionType.income;
     final color = isIncome ? AppColors.income : AppColors.expense;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.border, width: 0.5)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: colors.border, width: 0.5)),
       ),
       child: Row(
         children: [
@@ -31,7 +32,7 @@ class TransactionItem extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.surfaceAlt,
+              color: colors.surfaceAlt,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
@@ -48,8 +49,8 @@ class TransactionItem extends StatelessWidget {
               children: [
                 Text(
                   transaction.description,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -57,8 +58,8 @@ class TransactionItem extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   DateFormatter.relative(transaction.date),
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: colors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -79,8 +80,8 @@ class TransactionItem extends StatelessWidget {
               if (transaction.currency != 'BRL')
                 Text(
                   '${transaction.currency} ${transaction.value.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    color: AppColors.textMuted,
+                  style: TextStyle(
+                    color: colors.textMuted,
                     fontSize: 11,
                   ),
                 ),

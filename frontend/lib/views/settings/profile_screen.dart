@@ -17,22 +17,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final user = ref.watch(settingsViewModelProvider).user;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: AppColors.textPrimary, size: 18),
+          icon: Icon(Icons.arrow_back_ios_new,
+              color: colors.textPrimary, size: 18),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'Perfil',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -68,7 +69,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               child: Center(
                 child: Text(
-                  user.initials,
+                  user?.initials ?? '?',
                   style: const TextStyle(
                     color: AppColors.primary,
                     fontSize: 28,
@@ -85,13 +86,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _InfoField(
             icon: Icons.mail_outline_rounded,
             label: 'NOME',
-            value: user.name,
+            value: user?.name ?? '',
           ),
           const SizedBox(height: 10),
           _InfoField(
             icon: Icons.mail_outline_rounded,
             label: 'E-MAIL',
-            value: user.email,
+            value: user?.email ?? '',
             trailing: Container(
               padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
@@ -132,14 +133,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
           // Privacy section
           Row(
-            children: const [
+            children: [
               Icon(Icons.shield_outlined,
-                  color: AppColors.textMuted, size: 14),
-              SizedBox(width: 6),
+                  color: colors.textMuted, size: 14),
+              const SizedBox(width: 6),
               Text(
                 'PRIVACIDADE',
                 style: TextStyle(
-                  color: AppColors.textMuted,
+                  color: colors.textMuted,
                   fontSize: 11,
                   letterSpacing: 1.2,
                   fontWeight: FontWeight.w600,
@@ -152,20 +153,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
           Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: colors.border),
             ),
             child: Column(
               children: [
                 _PrivacyToggle(
                   title: 'Bloqueio biométrico',
                   subtitle: 'Exigir biometria ao abrir o app',
-                  subtitleColor: AppColors.textSecondary,
+                  subtitleColor: colors.textSecondary,
                   value: _biometrico,
                   onChanged: (v) => setState(() => _biometrico = v),
                 ),
-                const Divider(color: AppColors.border, height: 0, indent: 16),
+                Divider(color: colors.border, height: 0, indent: 16),
                 _PrivacyToggle(
                   title: 'Ocultar saldos',
                   subtitle: 'Esconder valores na tela inicial',
@@ -173,11 +174,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   value: _ocultarSaldos,
                   onChanged: (v) => setState(() => _ocultarSaldos = v),
                 ),
-                const Divider(color: AppColors.border, height: 0, indent: 16),
+                Divider(color: colors.border, height: 0, indent: 16),
                 _PrivacyToggle(
                   title: 'Compartilhamento de dados',
                   subtitle: 'Permitir análises anônimas de uso',
-                  subtitleColor: AppColors.textSecondary,
+                  subtitleColor: colors.textSecondary,
                   value: _compartilhamento,
                   onChanged: (v) => setState(() => _compartilhamento = v),
                 ),
@@ -205,16 +206,17 @@ class _InfoField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.textMuted, size: 18),
+          Icon(icon, color: colors.textMuted, size: 18),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -222,8 +224,8 @@ class _InfoField extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: AppColors.textMuted,
+                  style: TextStyle(
+                    color: colors.textMuted,
                     fontSize: 10,
                     letterSpacing: 0.8,
                     fontWeight: FontWeight.w500,
@@ -232,8 +234,8 @@ class _InfoField extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   value,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
@@ -265,6 +267,7 @@ class _PrivacyToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
@@ -275,8 +278,8 @@ class _PrivacyToggle extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -297,8 +300,8 @@ class _PrivacyToggle extends StatelessWidget {
             onChanged: onChanged,
             activeColor: AppColors.primary,
             activeTrackColor: AppColors.primary.withValues(alpha: 0.35),
-            inactiveThumbColor: AppColors.textMuted,
-            inactiveTrackColor: AppColors.surfaceAlt,
+            inactiveThumbColor: colors.textMuted,
+            inactiveTrackColor: colors.surfaceAlt,
           ),
         ],
       ),

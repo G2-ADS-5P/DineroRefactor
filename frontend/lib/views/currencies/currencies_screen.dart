@@ -50,22 +50,23 @@ class CurrenciesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
     final state = ref.watch(currenciesViewModelProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: AppColors.textPrimary, size: 18),
+          icon: Icon(Icons.arrow_back_ios_new,
+              color: colors.textPrimary, size: 18),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'Cotações',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -78,13 +79,13 @@ class CurrenciesScreen extends ConsumerWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.surfaceAlt,
+                color: colors.surfaceAlt,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: colors.border),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.refresh_rounded,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
                 size: 20,
               ),
             ),
@@ -101,15 +102,15 @@ class CurrenciesScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                   child: Row(
-                    children: const [
+                    children: [
                       Text(
                         'Atualizado há 12 min · ',
                         style: TextStyle(
-                          color: AppColors.textMuted,
+                          color: colors.textMuted,
                           fontSize: 12,
                         ),
                       ),
-                      Text(
+                      const Text(
                         'AwesomeAPI',
                         style: TextStyle(
                           color: AppColors.primary,
@@ -145,9 +146,9 @@ class CurrenciesScreen extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 14),
                         decoration: BoxDecoration(
-                          color: AppColors.surface,
+                          color: colors.surface,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(color: colors.border),
                         ),
                         child: Row(
                           children: [
@@ -156,15 +157,15 @@ class CurrenciesScreen extends ConsumerWidget {
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: AppColors.surfaceAlt,
+                                color: colors.surfaceAlt,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: AppColors.border),
+                                border: Border.all(color: colors.border),
                               ),
                               child: Center(
                                 child: Text(
                                   badge,
-                                  style: const TextStyle(
-                                    color: AppColors.textPrimary,
+                                  style: TextStyle(
+                                    color: colors.textPrimary,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -181,8 +182,8 @@ class CurrenciesScreen extends ConsumerWidget {
                                 children: [
                                   Text(
                                     '${c.code}/BRL',
-                                    style: const TextStyle(
-                                      color: AppColors.textPrimary,
+                                    style: TextStyle(
+                                      color: colors.textPrimary,
                                       fontSize: 15,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -190,8 +191,8 @@ class CurrenciesScreen extends ConsumerWidget {
                                   const SizedBox(height: 3),
                                   Text(
                                     '1 ${c.code} = ${_formatRate(c.rateToBase, c.code)}',
-                                    style: const TextStyle(
-                                      color: AppColors.textSecondary,
+                                    style: TextStyle(
+                                      color: colors.textSecondary,
                                       fontSize: 12,
                                     ),
                                   ),

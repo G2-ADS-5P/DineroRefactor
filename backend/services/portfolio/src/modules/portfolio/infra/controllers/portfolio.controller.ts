@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Query,
+  UseGuards,
 } from "@nestjs/common";
 import {
   ApiBearerAuth,
@@ -20,23 +21,26 @@ import {
   PortfolioDto,
   PortfolioItemDto,
 } from "@portfolio/application/dto/portfolio.dto";
+import { PortfolioAccessResponseDto } from "@portfolio/application/dto/portfolio-access-response.dto";
 import { PortfolioTransactionDto } from "@portfolio/application/dto/portfolio-transaction.dto";
 import { PortfolioTransactionResultDto } from "@portfolio/application/dto/portfolio-transaction-result.dto";
 import { PortfolioService } from "@portfolio/application/services/portfolio.service";
-import { Permission } from "@shared/domain/enums/permission.enum";
+import { PortfolioAccessService } from "@portfolio/application/services/portfolio-access.service";
+import { PortfolioWriteAccessGuard } from "@portfolio/infra/guards/portfolio-write-access.guard";
 import type { AuthenticatedUser } from "@shared/infra/auth/interfaces/authenticated-user.interface";
 import { CurrentUser } from "@shared/infra/decorators/current-user.decorator";
-import { RequirePermissions } from "@shared/infra/decorators/permissions.decorator";
 import { HateoasItem } from "@shared/infra/hateoas";
 
 @ApiTags("portfolio")
 @ApiBearerAuth()
 @Controller("portfolio")
 export class PortfolioController {
-  constructor(private readonly portfolioService: PortfolioService) {}
+  constructor(
+    private readonly portfolioService: PortfolioService,
+    private readonly portfolioAccessService: PortfolioAccessService,
+  ) {}
 
   @Get()
-  @RequirePermissions(Permission.PORTFOLIO_READ)
   @ApiOperation({ summary: "Consultar portfolio do usuario autenticado" })
   @ApiQuery({ name: "range", required: false, type: String })
   @HateoasItem<PortfolioDto>({
@@ -59,8 +63,15 @@ export class PortfolioController {
     );
   }
 
+  @Get("access/me")
+  @ApiOperation({ summary: "Consultar acesso de escrita no portfolio" })
+  async getAccessStatus(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<PortfolioAccessResponseDto> {
+    return this.portfolioAccessService.getAccessStatus(user.sub);
+  }
+
   @Get("transactions")
-  @RequirePermissions(Permission.PORTFOLIO_READ)
   @ApiOperation({ summary: "Listar lancamentos do portfolio" })
   async listTransactions(
     @CurrentUser() user: AuthenticatedUser,
@@ -69,7 +80,6 @@ export class PortfolioController {
   }
 
   @Get("assets/:id")
-  @RequirePermissions(Permission.PORTFOLIO_READ)
   @ApiOperation({ summary: "Buscar ativo do portfolio por ID" })
   @HateoasItem<PortfolioItemDto>({
     basePath: "/v1/portfolio/assets",
@@ -88,7 +98,7 @@ export class PortfolioController {
 
   @Post("assets")
   @HttpCode(HttpStatus.CREATED)
-  @RequirePermissions(Permission.PORTFOLIO_WRITE)
+  @UseGuards(PortfolioWriteAccessGuard)
   @ApiOperation({ summary: "Adicionar ativo ao portfolio" })
   @HateoasItem<PortfolioItemDto>({
     basePath: "/v1/portfolio/assets",
@@ -107,7 +117,7 @@ export class PortfolioController {
 
   @Post("transactions")
   @HttpCode(HttpStatus.CREATED)
-  @RequirePermissions(Permission.PORTFOLIO_WRITE)
+  @UseGuards(PortfolioWriteAccessGuard)
   @ApiOperation({ summary: "Adicionar lancamento de compra ou venda" })
   @HateoasItem<PortfolioTransactionResultDto>({
     basePath: "/v1/portfolio/transactions",

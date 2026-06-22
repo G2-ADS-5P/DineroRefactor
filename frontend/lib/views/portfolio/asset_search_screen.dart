@@ -26,11 +26,12 @@ class _AssetSearchScreenState extends ConsumerState<AssetSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final state = ref.watch(assetSearchViewModelProvider);
     final vm = ref.read(assetSearchViewModelProvider.notifier);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,19 +47,19 @@ class _AssetSearchScreenState extends ConsumerState<AssetSearchScreen> {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: colors.surface,
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: colors.border),
                       ),
-                      child: const Icon(Icons.chevron_left,
-                          color: AppColors.textPrimary, size: 22),
+                      child: Icon(Icons.chevron_left,
+                          color: colors.textPrimary, size: 22),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     'Pesquisar Ativos',
                     style: TextStyle(
-                      color: AppColors.textPrimary,
+                      color: colors.textPrimary,
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                     ),
@@ -74,20 +75,20 @@ class _AssetSearchScreenState extends ConsumerState<AssetSearchScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceAlt,
+                  color: colors.surfaceAlt,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: colors.border),
                 ),
                 child: TextField(
                   controller: _searchController,
                   onChanged: vm.search,
-                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: colors.textPrimary, fontSize: 14),
+                  decoration: InputDecoration(
                     hintText: 'Buscar por ticker ou nome...',
-                    hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 14),
-                    prefixIcon: Icon(Icons.search, color: AppColors.textMuted, size: 20),
+                    hintStyle: TextStyle(color: colors.textMuted, fontSize: 14),
+                    prefixIcon: Icon(Icons.search, color: colors.textMuted, size: 20),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
               ),
@@ -112,17 +113,17 @@ class _AssetSearchScreenState extends ConsumerState<AssetSearchScreen> {
                       duration: const Duration(milliseconds: 150),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primary.withOpacity(0.15) : AppColors.surfaceAlt,
+                        color: isSelected ? AppColors.primary.withOpacity(0.15) : colors.surfaceAlt,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isSelected ? AppColors.primary : AppColors.border,
+                          color: isSelected ? AppColors.primary : colors.border,
                           width: 1.5,
                         ),
                       ),
                       child: Text(
                         f,
                         style: TextStyle(
-                          color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                          color: isSelected ? AppColors.primary : colors.textSecondary,
                           fontSize: 13,
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                         ),
@@ -140,8 +141,8 @@ class _AssetSearchScreenState extends ConsumerState<AssetSearchScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 '${state.filteredAssets.length} ativo${state.filteredAssets.length != 1 ? 's' : ''} encontrado${state.filteredAssets.length != 1 ? 's' : ''}',
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: colors.textSecondary,
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
                 ),
@@ -153,15 +154,15 @@ class _AssetSearchScreenState extends ConsumerState<AssetSearchScreen> {
             // Grid
             Expanded(
               child: state.filteredAssets.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.search_off, color: AppColors.textMuted, size: 48),
-                          SizedBox(height: 12),
+                          Icon(Icons.search_off, color: colors.textMuted, size: 48),
+                          const SizedBox(height: 12),
                           Text(
                             'Nenhum ativo encontrado',
-                            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                            style: TextStyle(color: colors.textSecondary, fontSize: 14),
                           ),
                         ],
                       ),
@@ -193,15 +194,16 @@ class _AssetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final isPositive = asset.changePercent >= 0;
     final changeColor = isPositive ? AppColors.income : AppColors.expense;
     final typeLabel = asset.assetType?.label ?? 'Outros';
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: colors.border),
       ),
       padding: const EdgeInsets.all(12),
       child: Column(
@@ -213,16 +215,16 @@ class _AssetCard extends StatelessWidget {
             children: [
               Text(
                 asset.ticker,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                style: TextStyle(
+                  color: colors.textPrimary,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               Text(
                 CurrencyFormatter.format(asset.currentPrice),
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                style: TextStyle(
+                  color: colors.textPrimary,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -239,8 +241,8 @@ class _AssetCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   asset.name,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: colors.textSecondary,
                     fontSize: 10,
                     fontWeight: FontWeight.w400,
                   ),
@@ -291,14 +293,14 @@ class _AssetCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceAlt,
+                  color: colors.surfaceAlt,
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: colors.border),
                 ),
                 child: Text(
                   typeLabel,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: colors.textSecondary,
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
                   ),

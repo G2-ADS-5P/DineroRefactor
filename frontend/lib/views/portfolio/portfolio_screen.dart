@@ -20,11 +20,12 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final state = ref.watch(portfolioViewModelProvider);
     final isPositive = state.totalChange >= 0;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: state.isLoading
             ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
@@ -34,15 +35,15 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Portfólio',
-                          style: TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.w700)),
-                      const Icon(Icons.search, color: AppColors.textSecondary),
+                      Text('Portfólio',
+                          style: TextStyle(color: colors.textPrimary, fontSize: 22, fontWeight: FontWeight.w700)),
+                      Icon(Icons.search, color: colors.textSecondary),
                     ],
                   ),
                   const SizedBox(height: 20),
                   Text(
                     CurrencyFormatter.format(state.totalValue),
-                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 32, fontWeight: FontWeight.w700),
+                    style: TextStyle(color: colors.textPrimary, fontSize: 32, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -85,7 +86,7 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                           child: Text(
                             e.value,
                             style: TextStyle(
-                              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                              color: isSelected ? AppColors.primary : colors.textSecondary,
                               fontSize: 13,
                               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
                             ),
@@ -109,9 +110,9 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
 
                   Container(
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: colors.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: colors.border),
                     ),
                     child: Column(
                       children: state.assets.map((a) => AssetRow(

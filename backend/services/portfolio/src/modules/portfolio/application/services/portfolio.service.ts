@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { AddPortfolioAssetDto } from "@portfolio/application/dto/add-portfolio-asset.dto";
 import { CreatePortfolioTransactionDto } from "@portfolio/application/dto/create-portfolio-transaction.dto";
 import {
@@ -12,6 +7,11 @@ import {
 } from "@portfolio/application/dto/portfolio.dto";
 import { PortfolioTransactionDto } from "@portfolio/application/dto/portfolio-transaction.dto";
 import { PortfolioTransactionResultDto } from "@portfolio/application/dto/portfolio-transaction-result.dto";
+import {
+  AssetNotFoundError,
+  AssetNotInPortfolioError,
+  PortfolioPositionNotFoundError,
+} from "@portfolio/domain/errors/portfolio.errors";
 import { AssetService } from "@portfolio/application/services/asset.service";
 import type { Asset } from "@portfolio/domain/models/asset.entity";
 import { PortfolioAsset } from "@portfolio/domain/models/portfolio-asset.entity";
@@ -111,16 +111,10 @@ export class PortfolioService {
       }
     } else {
       if (!existing) {
-        throw new BadRequestException(`Asset ${ticker} is not in portfolio`);
+        throw new AssetNotInPortfolioError(ticker);
       }
 
-      try {
-        existing.removePosition(dto.quantity);
-      } catch (error) {
-        throw new BadRequestException(
-          error instanceof Error ? error.message : "Invalid sell transaction",
-        );
-      }
+      existing.removePosition(dto.quantity);
 
       if (existing.isEmpty) {
         await this.portfolioAssetRepository.delete(existing.id!);
@@ -174,7 +168,7 @@ export class PortfolioService {
       await this.portfolioAssetRepository.findById(portfolioAssetId);
 
     if (!portfolioAsset || portfolioAsset.userId !== userId) {
-      throw new NotFoundException("Portfolio asset not found");
+      throw new PortfolioPositionNotFoundError(portfolioAssetId);
     }
 
     const asset = await this.assetRepository.findById(portfolioAsset.assetId);
@@ -221,6 +215,8 @@ export class PortfolioService {
     portfolioAsset: PortfolioAsset,
     asset: Asset | null,
   ): Promise<PortfolioItemDto> {
+    if (!asset) throw new AssetNotFoundError(portfolioAsset.assetId);
+
     const quote = await this.getQuote(asset);
     const currentPrice = quote?.price ?? portfolioAsset.averagePrice;
     const currentValue = portfolioAsset.quantity * currentPrice;
@@ -233,9 +229,9 @@ export class PortfolioService {
     return new PortfolioItemDto({
       id: portfolioAsset.id,
       assetId: portfolioAsset.assetId,
-      ticker: asset?.ticker ?? "UNKNOWN",
-      name: asset?.name ?? "Unknown",
-      type: asset?.type ?? "UNKNOWN",
+      ticker: asset.ticker,
+      name: asset.name,
+      type: asset.type,
       quantity: portfolioAsset.quantity,
       averagePrice: portfolioAsset.averagePrice,
       totalCost: portfolioAsset.totalCost,
@@ -253,12 +249,12 @@ export class PortfolioService {
     transactions: PortfolioTransaction[],
   ): AssetHistoryPoint[] {
     const pointsByRange: Record<HistoryRange, number> = {
-      "1D": 8,
+      "1D": 1,
       "1S": 7,
       "1M": 30,
       "3M": 13,
       "1A": 12,
-      TUDO: 24,
+      TUDO: 0,
     };
     const points = pointsByRange[range];
     const now = new Date();
@@ -292,25 +288,59 @@ export class PortfolioService {
     points: number,
     transactions: PortfolioTransaction[],
   ): Date[] {
-    if (range === "TUDO" && transactions.length > 0) {
-      const firstTransaction = transactions.reduce((earliest, transaction) =>
-        transaction.operationDate < earliest.operationDate
-          ? transaction
-          : earliest,
-      );
-      const start = firstTransaction.operationDate;
-      const totalDistance = now.getTime() - start.getTime();
-
-      return Array.from({ length: points }, (_, index) => {
-        const progress = points === 1 ? 1 : index / (points - 1);
-        return new Date(start.getTime() + totalDistance * progress);
-      });
+    if (range === "TUDO") {
+      return this.buildAllHistoryTimeline(now, transactions);
     }
 
     return Array.from({ length: points }, (_, index) => {
       const distance = points - 1 - index;
       return this.historyDate(now, range, distance);
     });
+  }
+
+  private buildAllHistoryTimeline(
+    now: Date,
+    transactions: PortfolioTransaction[],
+  ): Date[] {
+    if (transactions.length === 0) return [now];
+
+    const firstTransaction = transactions.reduce((earliest, transaction) =>
+      transaction.operationDate < earliest.operationDate
+        ? transaction
+        : earliest,
+    );
+    const start = firstTransaction.operationDate;
+    const elapsedDays = Math.max(
+      0,
+      Math.ceil((now.getTime() - start.getTime()) / 86_400_000),
+    );
+    const dates: Date[] = [];
+    const cursor = new Date(start);
+
+    const advance = (date: Date) => {
+      if (elapsedDays <= 31) {
+        date.setDate(date.getDate() + 1);
+      } else if (elapsedDays <= 180) {
+        date.setDate(date.getDate() + 7);
+      } else if (elapsedDays <= 730) {
+        date.setMonth(date.getMonth() + 1);
+      } else if (elapsedDays <= 1825) {
+        date.setMonth(date.getMonth() + 3);
+      } else {
+        date.setFullYear(date.getFullYear() + 1);
+      }
+    };
+
+    while (cursor < now) {
+      dates.push(new Date(cursor));
+      advance(cursor);
+    }
+
+    if (dates.length === 0 || dates.at(-1)?.getTime() !== now.getTime()) {
+      dates.push(now);
+    }
+
+    return dates;
   }
 
   private calculateInvestedValueAt(

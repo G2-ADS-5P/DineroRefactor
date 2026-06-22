@@ -8,9 +8,10 @@ class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   void _showHelpSheet(BuildContext context) {
+    final colors = AppColors.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: colors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -20,17 +21,18 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
     final state = ref.watch(settingsViewModelProvider);
     final user = state.user;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
           children: [
-            const Text('Configurações',
-                style: TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.w700)),
+            Text('Configurações',
+                style: TextStyle(color: colors.textPrimary, fontSize: 22, fontWeight: FontWeight.w700)),
             const SizedBox(height: 20),
 
             // User card
@@ -39,9 +41,9 @@ class SettingsScreen extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: colors.border),
                 ),
                 child: Row(
                   children: [
@@ -54,7 +56,7 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       child: Center(
                         child: Text(
-                          user.initials,
+                          user?.initials ?? '?',
                           style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
                         ),
                       ),
@@ -64,12 +66,12 @@ class SettingsScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(user.name, style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
-                          Text(user.email, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                          Text(user?.name ?? 'Carregando...', style: TextStyle(color: colors.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
+                          Text(user?.email ?? '—', style: TextStyle(color: colors.textSecondary, fontSize: 13)),
                         ],
                       ),
                     ),
-                    const Icon(Icons.arrow_forward_ios, color: AppColors.textSecondary, size: 16),
+                    Icon(Icons.arrow_forward_ios, color: colors.textSecondary, size: 16),
                   ],
                 ),
               ),
@@ -90,7 +92,7 @@ class SettingsScreen extends ConsumerWidget {
             _SectionTitle('PREFERÊNCIAS'),
             const SizedBox(height: 8),
             _SettingsGroup(items: [
-              _SettingsItem(icon: Icons.currency_exchange, label: 'Moeda padrão', trailing: const Text('BRL', style: TextStyle(color: AppColors.textSecondary)), onTap: () => context.push('/config/moedas')),
+              _SettingsItem(icon: Icons.currency_exchange, label: 'Moeda padrão', trailing: Text('BRL', style: TextStyle(color: colors.textSecondary)), onTap: () => context.push('/config/moedas')),
               _SettingsItem(icon: Icons.dark_mode_outlined, label: 'Tema escuro', trailing: Switch(value: true, onChanged: null, activeColor: AppColors.primary), onTap: () {}),
             ]),
             const SizedBox(height: 20),
@@ -111,7 +113,7 @@ class SettingsScreen extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.expense.withOpacity(0.3)),
                 ),
@@ -133,10 +135,13 @@ class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.title);
 
   @override
-  Widget build(BuildContext context) => Text(
-        title,
-        style: const TextStyle(color: AppColors.textMuted, fontSize: 11, letterSpacing: 1),
-      );
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return Text(
+      title,
+      style: TextStyle(color: colors.textMuted, fontSize: 11, letterSpacing: 1),
+    );
+  }
 }
 
 class _SettingsGroup extends StatelessWidget {
@@ -145,11 +150,12 @@ class _SettingsGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         children: items.asMap().entries.map((e) {
@@ -157,7 +163,7 @@ class _SettingsGroup extends StatelessWidget {
           return Column(
             children: [
               e.value,
-              if (!isLast) const Divider(color: AppColors.border, height: 0, indent: 16),
+              if (!isLast) Divider(color: colors.border, height: 0, indent: 16),
             ],
           );
         }).toList(),
@@ -181,10 +187,11 @@ class _SettingsItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return ListTile(
-      leading: Icon(icon, color: AppColors.textSecondary, size: 20),
-      title: Text(label, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14)),
-      trailing: trailing ?? const Icon(Icons.arrow_forward_ios, color: AppColors.textMuted, size: 14),
+      leading: Icon(icon, color: colors.textSecondary, size: 20),
+      title: Text(label, style: TextStyle(color: colors.textPrimary, fontSize: 14)),
+      trailing: trailing ?? Icon(Icons.arrow_forward_ios, color: colors.textMuted, size: 14),
       onTap: onTap,
       dense: true,
     );
@@ -196,6 +203,7 @@ class _HelpSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
       child: Column(
@@ -205,10 +213,10 @@ class _HelpSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Ajuda e suporte',
                 style: TextStyle(
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
@@ -219,11 +227,11 @@ class _HelpSheet extends StatelessWidget {
                   width: 30,
                   height: 30,
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceAlt,
+                    color: colors.surfaceAlt,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.close,
-                      color: AppColors.textSecondary, size: 16),
+                  child: Icon(Icons.close,
+                      color: colors.textSecondary, size: 16),
                 ),
               ),
             ],
@@ -234,9 +242,9 @@ class _HelpSheet extends StatelessWidget {
           // Items
           Container(
             decoration: BoxDecoration(
-              color: AppColors.surfaceAlt,
+              color: colors.surfaceAlt,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: colors.border),
             ),
             child: Column(
               children: [
@@ -246,14 +254,14 @@ class _HelpSheet extends StatelessWidget {
                   subtitle: 'Envie uma mensagem para o suporte',
                   onTap: () {},
                 ),
-                const Divider(color: AppColors.border, height: 0, indent: 56),
+                Divider(color: colors.border, height: 0, indent: 56),
                 _HelpItem(
                   icon: Icons.help_outline_rounded,
                   title: 'Perguntas frequentes',
                   subtitle: 'Encontre respostas rápidas',
                   onTap: () {},
                 ),
-                const Divider(color: AppColors.border, height: 0, indent: 56),
+                Divider(color: colors.border, height: 0, indent: 56),
                 _HelpItem(
                   icon: Icons.description_outlined,
                   title: 'Termos de uso',
@@ -266,10 +274,10 @@ class _HelpSheet extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          const Text(
+          Text(
             'suporte@dinero.app · v1.0.0',
             style: TextStyle(
-              color: AppColors.textMuted,
+              color: colors.textMuted,
               fontSize: 12,
             ),
           ),
@@ -294,20 +302,21 @@ class _HelpItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return ListTile(
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: Icon(icon, color: AppColors.textSecondary, size: 20),
+      leading: Icon(icon, color: colors.textSecondary, size: 20),
       title: Text(title,
-          style: const TextStyle(
-              color: AppColors.textPrimary,
+          style: TextStyle(
+              color: colors.textPrimary,
               fontSize: 14,
               fontWeight: FontWeight.w500)),
       subtitle: Text(subtitle,
-          style: const TextStyle(
-              color: AppColors.textSecondary, fontSize: 12)),
-      trailing: const Icon(Icons.open_in_new_rounded,
-          color: AppColors.textMuted, size: 16),
+          style: TextStyle(
+              color: colors.textSecondary, fontSize: 12)),
+      trailing: Icon(Icons.open_in_new_rounded,
+          color: colors.textMuted, size: 16),
     );
   }
 }

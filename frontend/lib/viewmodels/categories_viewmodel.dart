@@ -2,6 +2,7 @@ import 'package:dinero/models/category.dart';
 import 'package:dinero/models/transaction.dart';
 import 'package:dinero/repositories/interfaces/i_category_repository.dart';
 import 'package:dinero/repositories/interfaces/i_transaction_repository.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CategoryStat {
@@ -50,10 +51,28 @@ class CategoriesViewModel extends StateNotifier<CategoriesState> {
     _load();
   }
 
+  static const _defaultCategories = [
+    {'name': 'Moradia',     'emoji': '🏠', 'color': 0xFF3B82F6, 'budget': 2500.0},
+    {'name': 'Alimentação', 'emoji': '🍔', 'color': 0xFFF97316, 'budget': 1000.0},
+    {'name': 'Transporte',  'emoji': '🚗', 'color': 0xFF22C55E, 'budget': 500.0},
+    {'name': 'Lazer',       'emoji': '🎮', 'color': 0xFFA855F7, 'budget': 400.0},
+    {'name': 'Assinaturas', 'emoji': '📱', 'color': 0xFF06B6D4, 'budget': 350.0},
+    {'name': 'Saúde',       'emoji': '❤️', 'color': 0xFFEC4899, 'budget': 300.0},
+    {'name': 'Educação',    'emoji': '📚', 'color': 0xFFF59E0B, 'budget': 200.0},
+    {'name': 'Outros',      'emoji': '💼', 'color': 0xFF64748B, 'budget': null},
+  ];
+
   Future<void> _load() async {
-    final categories = await _categoryRepo.getAll();
+    state = state.copyWith(isLoading: true);
+    var categories = await _categoryRepo.getAll();
+
+    if (categories.isEmpty) {
+      await _seedDefaults();
+      categories = await _categoryRepo.getAll();
+    }
+
     final transactions = await _transactionRepo.getAll();
-    final now = DateTime(2026, 3, 24);
+    final now = DateTime.now();
 
     final Map<String, double> spentMap = {};
     for (final t in transactions) {
@@ -73,16 +92,37 @@ class CategoriesViewModel extends StateNotifier<CategoriesState> {
     }).toList();
 
     final totalSpent = spentMap.values.fold(0.0, (a, b) => a + b);
-
     state = state.copyWith(stats: stats, totalSpent: totalSpent, isLoading: false);
   }
 
-  void addCategory(Category category) {
-    final stat = CategoryStat(
-      category: category,
-      spent: 0,
-      budget: category.budgetAmount,
-    );
-    state = state.copyWith(stats: [...state.stats, stat]);
+  Future<void> _seedDefaults() async {
+    for (final d in _defaultCategories) {
+      try {
+        await _categoryRepo.create(Category(
+          id: '',
+          name: d['name'] as String,
+          emoji: d['emoji'] as String,
+          color: Color(d['color'] as int),
+          isDefault: true,
+          budgetAmount: d['budget'] as double?,
+        ));
+      } catch (_) {}
+    }
+  }
+
+  Future<void> refresh() => _load();
+
+  Future<void> createCategory(Category category) async {
+    try {
+      await _categoryRepo.create(category);
+      await _load();
+    } catch (_) {}
+  }
+
+  Future<void> deleteCategory(String id) async {
+    try {
+      await _categoryRepo.delete(id);
+      await _load();
+    } catch (_) {}
   }
 }

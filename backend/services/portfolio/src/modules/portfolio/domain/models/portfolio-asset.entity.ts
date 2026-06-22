@@ -1,3 +1,9 @@
+import {
+  InsufficientQuantityError,
+  InvalidAveragePriceError,
+  InvalidQuantityError,
+} from "@portfolio/domain/errors/portfolio.errors";
+
 export class PortfolioAsset {
   private readonly _id?: string;
   private _userId: string;
@@ -50,8 +56,8 @@ export class PortfolioAsset {
   }
 
   addPosition(quantity: number, price: number): void {
-    if (quantity <= 0) throw new Error("Quantity must be greater than 0");
-    if (price <= 0) throw new Error("Average price must be greater than 0");
+    if (quantity <= 0) throw new InvalidQuantityError(quantity);
+    if (price <= 0) throw new InvalidAveragePriceError(price);
 
     const totalShares = this._quantity + quantity;
     const totalCost = this.totalCost + quantity * price;
@@ -62,8 +68,10 @@ export class PortfolioAsset {
   }
 
   removePosition(quantity: number): void {
-    if (quantity <= 0) throw new Error("Quantity must be greater than 0");
-    if (quantity > this._quantity) throw new Error("Insufficient quantity");
+    if (quantity <= 0) throw new InvalidQuantityError(quantity);
+    if (quantity > this._quantity) {
+      throw new InsufficientQuantityError(this._quantity, quantity);
+    }
 
     this._quantity -= quantity;
     this._updatedAt = new Date();
@@ -76,11 +84,11 @@ export class PortfolioAsset {
     averagePrice: number;
   }): PortfolioAsset {
     if (props.quantity <= 0) {
-      throw new Error("Quantity must be greater than 0");
+      throw new InvalidQuantityError(props.quantity);
     }
 
     if (props.averagePrice <= 0) {
-      throw new Error("Average price must be greater than 0");
+      throw new InvalidAveragePriceError(props.averagePrice);
     }
 
     const now = new Date();
