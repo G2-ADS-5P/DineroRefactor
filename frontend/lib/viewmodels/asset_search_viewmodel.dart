@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dinero/models/asset.dart';
 import 'package:dinero/repositories/interfaces/i_asset_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,6 +46,7 @@ class AssetSearchState {
 
 class AssetSearchViewModel extends StateNotifier<AssetSearchState> {
   final IAssetRepository _repo;
+  Timer? _debounce;
 
   AssetSearchViewModel(this._repo)
     : super(
@@ -56,13 +59,22 @@ class AssetSearchViewModel extends StateNotifier<AssetSearchState> {
     load();
   }
 
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
   Future<void> load() async {
     await _fetch(query: state.query, filter: state.selectedFilter);
   }
 
-  Future<void> search(String query) async {
-    state = state.copyWith(query: query);
-    await _fetch(query: query, filter: state.selectedFilter);
+  void search(String query) {
+    state = state.copyWith(query: query, isLoading: true, errorMessage: null);
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 600), () {
+      _fetch(query: query, filter: state.selectedFilter);
+    });
   }
 
   Future<void> setFilter(String filter) async {

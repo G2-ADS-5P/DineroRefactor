@@ -21,8 +21,8 @@ class ApiClient {
       : dio = Dio(
           BaseOptions(
             baseUrl: baseUrl ?? ApiConfig.identityBaseUrl,
-            connectTimeout: const Duration(seconds: 10),
-            receiveTimeout: const Duration(seconds: 10),
+            connectTimeout: const Duration(seconds: 15),
+            receiveTimeout: const Duration(seconds: 30),
             headers: {'Content-Type': 'application/json'},
           ),
         ) {
@@ -65,6 +65,8 @@ class ApiClient {
         details = Map<String, dynamic>.from(rawDetails);
       }
     } else if (error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.sendTimeout ||
         error.type == DioExceptionType.connectionError) {
       message = 'Não foi possível conectar ao servidor';
     } else {
