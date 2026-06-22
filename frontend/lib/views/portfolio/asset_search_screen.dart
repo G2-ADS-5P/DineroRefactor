@@ -158,7 +158,9 @@ class _AssetSearchScreenState extends ConsumerState<AssetSearchScreen> {
               child: Text(
                 state.isLoading
                     ? 'Buscando ativos...'
-                    : '${state.filteredAssets.length} ativo${state.filteredAssets.length != 1 ? 's' : ''} encontrado${state.filteredAssets.length != 1 ? 's' : ''}',
+                    : state.query.isEmpty
+                        ? 'Digite o ticker ou nome do ativo'
+                        : '${state.filteredAssets.length} ativo${state.filteredAssets.length != 1 ? 's' : ''} encontrado${state.filteredAssets.length != 1 ? 's' : ''}',
                 style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
@@ -166,16 +168,6 @@ class _AssetSearchScreenState extends ConsumerState<AssetSearchScreen> {
                 ),
               ),
             ),
-            if (state.errorMessage != null) ...[
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  state.errorMessage!,
-                  style: const TextStyle(color: AppColors.danger, fontSize: 13),
-                ),
-              ),
-            ],
             const SizedBox(height: 12),
             Expanded(
               child: state.isLoading
@@ -184,28 +176,57 @@ class _AssetSearchScreenState extends ConsumerState<AssetSearchScreen> {
                         color: AppColors.primary,
                       ),
                     )
-                  : state.filteredAssets.isEmpty
+                  : state.query.isEmpty
                       ? const Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                Icons.search_off,
+                                Icons.manage_search_rounded,
                                 color: AppColors.textMuted,
-                                size: 48,
+                                size: 52,
                               ),
                               SizedBox(height: 12),
                               Text(
-                                'Nenhum ativo encontrado',
+                                'Pesquise por ticker ou nome',
                                 style: TextStyle(
                                   color: AppColors.textSecondary,
                                   fontSize: 14,
                                 ),
                               ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Ex: MXRF11, PETR4, Bitcoin',
+                                style: TextStyle(
+                                  color: AppColors.textMuted,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ],
                           ),
                         )
-                      : GridView.builder(
+                      : state.filteredAssets.isEmpty
+                          ? const Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.search_off,
+                                    color: AppColors.textMuted,
+                                    size: 48,
+                                  ),
+                                  SizedBox(height: 12),
+                                      Text(
+                                    'Nenhum ativo encontrado',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : GridView.builder(
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(

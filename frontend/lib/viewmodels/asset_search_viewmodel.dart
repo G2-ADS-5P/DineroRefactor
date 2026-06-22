@@ -34,6 +34,7 @@ class AssetSearchState {
         selectedFilter: selectedFilter ?? this.selectedFilter,
         isLoading: isLoading ?? this.isLoading,
         isAdding: isAdding ?? this.isAdding,
+        // errorMessage: null por padrão ao não passar = limpa o erro
         errorMessage: errorMessage,
       );
 }
@@ -44,17 +45,34 @@ class AssetSearchViewModel extends StateNotifier<AssetSearchState> {
 
   AssetSearchViewModel(this._repo, this._cache)
       : super(const AssetSearchState()) {
-    // Exibe imediatamente o que já está no cache
-    final cached = _applyFilters(_cache.state.assets, '', 'Todos');
-    state = state.copyWith(filteredAssets: cached);
+    // Exibe imediatamente o que já está no cache (pode ser vazio no início)
+    _updateFromCache();
+  }
+
+  void _updateFromCache() {
+    final filtered = _applyFilters(
+      _cache.state.assets,
+      state.query,
+      state.selectedFilter,
+    );
+    state = state.copyWith(filteredAssets: filtered);
   }
 
   // Filtragem local instantânea — sem rede
   void search(String query) {
-    final cached = _applyFilters(_cache.state.assets, query, state.selectedFilter);
-    state = state.copyWith(query: query, filteredAssets: cached, errorMessage: null);
+    final cached = _applyFilters(
+      _cache.state.assets,
+      query,
+      state.selectedFilter,
+    );
+    // Limpa erro anterior ao digitar
+    state = AssetSearchState(
+      filteredAssets: cached,
+      query: query,
+      selectedFilter: state.selectedFilter,
+    );
 
-    // Se não achou nada no cache com 3+ caracteres, tenta backend
+    // Só vai ao backend se não achou nada com 3+ caracteres
     if (cached.isEmpty && query.trim().length >= 3) {
       _searchBackend(query);
     }
@@ -65,16 +83,20 @@ class AssetSearchViewModel extends StateNotifier<AssetSearchState> {
     state = state.copyWith(selectedFilter: filter, filteredAssets: filtered);
   }
 
-  // Backend search — só chamado quando o cache não tem resultados suficientes
   Future<void> _searchBackend(String query) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(isLoading: true);
     try {
       final results = await _repo.search(query: query, limit: 10);
       _cache.addResults(results);
-      final filtered = _applyFilters(_cache.state.assets, query, state.selectedFilter);
+      final filtered = _applyFilters(
+        _cache.state.assets,
+        query,
+        state.selectedFilter,
+      );
       state = state.copyWith(filteredAssets: filtered, isLoading: false);
-    } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+    } catch (_) {
+      // Não exibe erro — simplesmente para de carregar
+      state = state.copyWith(isLoading: false);
     }
   }
 
