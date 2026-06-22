@@ -148,6 +148,7 @@ final addTransactionViewModelProvider =
   (ref) => AddTransactionViewModel(
     ref.watch(financeFacadeProvider),
     ref.watch(categoryRepositoryProvider),
+    ref.watch(cardRepositoryProvider),
   ),
 );
 

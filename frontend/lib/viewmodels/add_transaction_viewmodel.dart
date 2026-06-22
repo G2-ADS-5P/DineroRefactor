@@ -1,7 +1,9 @@
 import 'package:dinero/core/patterns/facade/finance_facade.dart';
 import 'package:dinero/core/network/api_client.dart';
+import 'package:dinero/models/card_model.dart';
 import 'package:dinero/models/category.dart';
 import 'package:dinero/models/transaction.dart';
+import 'package:dinero/repositories/interfaces/i_card_repository.dart';
 import 'package:dinero/repositories/interfaces/i_category_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,6 +18,8 @@ class AddTransactionState {
   final String currency;
   final AddTransactionStatus status;
   final String? errorMessage;
+  final List<CardModel> cards;
+  final String? selectedCardId;
 
   const AddTransactionState({
     this.type = TransactionType.expense,
@@ -26,6 +30,8 @@ class AddTransactionState {
     this.currency = 'BRL',
     this.status = AddTransactionStatus.idle,
     this.errorMessage,
+    this.cards = const [],
+    this.selectedCardId,
   });
 
   double get parsedValue =>
@@ -40,6 +46,8 @@ class AddTransactionState {
     String? currency,
     AddTransactionStatus? status,
     String? errorMessage,
+    List<CardModel>? cards,
+    Object? selectedCardId = _sentinel,
   }) =>
       AddTransactionState(
         type: type ?? this.type,
@@ -50,21 +58,33 @@ class AddTransactionState {
         currency: currency ?? this.currency,
         status: status ?? this.status,
         errorMessage: errorMessage,
+        cards: cards ?? this.cards,
+        selectedCardId: selectedCardId == _sentinel
+            ? this.selectedCardId
+            : selectedCardId as String?,
       );
 }
 
+const _sentinel = Object();
+
 class AddTransactionViewModel extends StateNotifier<AddTransactionState> {
-  AddTransactionViewModel(this._facade, this._categoryRepo)
+  AddTransactionViewModel(this._facade, this._categoryRepo, this._cardRepo)
       : super(const AddTransactionState()) {
-    _loadCategories();
+    _load();
   }
 
   final FinanceFacade _facade;
   final ICategoryRepository _categoryRepo;
+  final ICardRepository _cardRepo;
 
-  Future<void> _loadCategories() async {
+  Future<void> _load() async {
     final cats = await _categoryRepo.getAll();
-    state = state.copyWith(categories: cats);
+    final cards = await _cardRepo.getAll();
+    state = state.copyWith(
+      categories: cats,
+      cards: cards,
+      selectedCardId: cards.isNotEmpty ? cards.first.id : null,
+    );
   }
 
   void setType(TransactionType type) => state = state.copyWith(type: type);
@@ -73,6 +93,8 @@ class AddTransactionViewModel extends StateNotifier<AddTransactionState> {
     final next = id == state.selectedCategoryId ? '' : id;
     state = state.copyWith(selectedCategoryId: next);
   }
+
+  void selectCard(String id) => state = state.copyWith(selectedCardId: id);
 
   void setDescription(String value) =>
       state = state.copyWith(description: value);

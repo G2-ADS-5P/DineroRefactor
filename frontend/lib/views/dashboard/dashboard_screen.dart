@@ -15,6 +15,11 @@ class DashboardScreen extends ConsumerWidget {
     final colors = AppColors.of(context);
     final state = ref.watch(dashboardViewModelProvider);
 
+    final userAsync = ref.watch(userProvider);
+    final userName = userAsync.valueOrNull?.name.split(' ').first ?? '';
+    final hour = DateTime.now().hour;
+    final greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
+
     return Scaffold(
       backgroundColor: colors.background,
       body: SafeArea(
@@ -34,8 +39,8 @@ class DashboardScreen extends ConsumerWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Boa noite,', style: TextStyle(color: colors.textSecondary, fontSize: 14)),
-                            Text('Gabriel', style: TextStyle(color: colors.textPrimary, fontSize: 22, fontWeight: FontWeight.w700)),
+                            Text('$greeting,', style: TextStyle(color: colors.textSecondary, fontSize: 14)),
+                            Text(userName, style: TextStyle(color: colors.textPrimary, fontSize: 22, fontWeight: FontWeight.w700)),
                           ],
                         ),
                         IconButton(
@@ -107,18 +112,6 @@ class DashboardScreen extends ConsumerWidget {
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                              const SizedBox(width: 12),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  '+2,4% hoje',
-                                  style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w600),
-                                ),
-                              ),
                             ],
                           ),
                         ],

@@ -115,7 +115,46 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  ...state.stats.map((s) => GestureDetector(
+                  ...state.stats.map((s) => Dismissible(
+                        key: ValueKey(s.category.id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          decoration: BoxDecoration(
+                            color: AppColors.expense.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          alignment: Alignment.centerRight,
+                          child: const Icon(Icons.delete_outline, color: AppColors.expense),
+                        ),
+                        confirmDismiss: (_) async {
+                          return await showDialog<bool>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              backgroundColor: colors.surface,
+                              title: Text('Excluir categoria', style: TextStyle(color: colors.textPrimary)),
+                              content: Text(
+                                'Deseja excluir "${s.category.name}"?',
+                                style: TextStyle(color: colors.textSecondary),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: Text('Cancelar', style: TextStyle(color: colors.textSecondary)),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Excluir', style: TextStyle(color: AppColors.expense)),
+                                ),
+                              ],
+                            ),
+                          ) ?? false;
+                        },
+                        onDismissed: (_) => ref
+                            .read(categoriesViewModelProvider.notifier)
+                            .deleteCategory(s.category.id),
+                        child: GestureDetector(
                         onTap: () => context.push('/categorias/${s.category.id}'),
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -196,7 +235,8 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                             ],
                           ),
                         ),
-                      )),
+                      ),
+                    )),
                 ],
               ),
       ),

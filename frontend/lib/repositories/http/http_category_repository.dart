@@ -47,6 +47,11 @@ class HttpCategoryRepository implements ICategoryRepository {
   }
 
   @override
+  Future<void> delete(String id) async {
+    await _client.delete(BackendService.financial, '/categories/$id');
+  }
+
+  @override
   Future<Budget?> getBudget(String categoryId) async {
     final categories = await getAll();
     final match = categories.where((c) => c.id == categoryId).toList();

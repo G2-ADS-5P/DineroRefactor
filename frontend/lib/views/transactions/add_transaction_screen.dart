@@ -16,8 +16,14 @@ class AddTransactionScreen extends ConsumerWidget {
     final colors = AppColors.of(context);
     final state = ref.watch(addTransactionViewModelProvider);
     final vm = ref.read(addTransactionViewModelProvider.notifier);
+    final cards = ref.watch(cardsViewModelProvider).cards;
     final isExpense = state.type == TransactionType.expense;
     final accentColor = isExpense ? AppColors.expense : AppColors.income;
+
+    // Pre-seleciona o primeiro cartão disponível
+    if (state.selectedCardId == null && cards.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => vm.selectCard(cards.first.id));
+    }
 
     ref.listen(addTransactionViewModelProvider, (_, next) {
       if (next.status == AddTransactionStatus.success) {
@@ -143,6 +149,66 @@ class AddTransactionScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
+
+            // Card picker (only for expenses)
+            if (isExpense && cards.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Icon(Icons.credit_card, color: colors.textSecondary, size: 16),
+                    const SizedBox(width: 6),
+                    Text('Pagar com:', style: TextStyle(color: colors.textSecondary, fontSize: 13)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 44,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: cards.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (_, i) {
+                    final card = cards[i];
+                    final isSelected = state.selectedCardId == card.id;
+                    return GestureDetector(
+                      onTap: () => vm.selectCard(card.id),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? card.color.withValues(alpha: 0.15)
+                              : colors.surfaceAlt,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: isSelected ? card.color : colors.border,
+                            width: isSelected ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.credit_card, color: card.color, size: 14),
+                            const SizedBox(width: 6),
+                            Text(
+                              card.name,
+                              style: TextStyle(
+                                color: isSelected ? card.color : colors.textSecondary,
+                                fontSize: 13,
+                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
 
             // Keypad
             Expanded(
