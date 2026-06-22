@@ -10,7 +10,7 @@
 ///   /api/portfolio/   → http://portfolio:4007/v1/
 library app_config;
 
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 /// Os 4 microsserviços do backend Dinero.
 enum BackendService { identity, financial, openfinance, portfolio }
@@ -25,7 +25,9 @@ class AppConfig {
   // No emulador Android, `localhost` aponta para o próprio dispositivo.
   // `10.0.2.2` é o alias que redireciona para a máquina host.
   static String get _host =>
-      Platform.isAndroid ? '10.0.2.2' : 'localhost';
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+          ? '10.0.2.2'
+          : 'localhost';
 
   static const Map<BackendService, int> _devPorts = {
     BackendService.identity: 4008,
