@@ -10,24 +10,24 @@ class SubscriptionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
     final state = ref.watch(subscriptionViewModelProvider);
     final vm = ref.read(subscriptionViewModelProvider.notifier);
     final sub = state.subscription;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: AppColors.textPrimary, size: 18),
+          icon: Icon(Icons.arrow_back_ios_new, color: colors.textPrimary, size: 18),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'Plano / Assinatura',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -117,10 +117,11 @@ class _PlanBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final (label, color) = switch (plan) {
       SubscriptionPlan.pro => ('PRO', AppColors.primary),
       SubscriptionPlan.trial => ('TRIAL', AppColors.warning),
-      SubscriptionPlan.free => ('FREE', AppColors.textMuted),
+      SubscriptionPlan.free => ('FREE', colors.textMuted),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -148,10 +149,11 @@ class _StatusRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final (label, color) = switch (status) {
       SubscriptionStatus.active => ('Ativa', AppColors.primary),
       SubscriptionStatus.expired => ('Expirada', AppColors.danger),
-      SubscriptionStatus.canceled => ('Cancelada', AppColors.textMuted),
+      SubscriptionStatus.canceled => ('Cancelada', colors.textMuted),
     };
     return Center(
       child: Text(
@@ -168,6 +170,7 @@ class _TrialInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final remaining =
         subscription.trialEndsAt!.difference(DateTime.now()).inDays;
     final expiring = subscription.isTrialExpiring;
@@ -176,18 +179,18 @@ class _TrialInfo extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: (expiring ? AppColors.warning : AppColors.surface)
+        color: (expiring ? AppColors.warning : colors.surface)
             .withValues(alpha: expiring ? 0.15 : 1),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: expiring ? AppColors.warning : AppColors.border,
+          color: expiring ? AppColors.warning : colors.border,
         ),
       ),
       child: Row(
         children: [
           Icon(
             expiring ? Icons.warning_amber_rounded : Icons.schedule,
-            color: expiring ? AppColors.warning : AppColors.textSecondary,
+            color: expiring ? AppColors.warning : colors.textSecondary,
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -197,7 +200,7 @@ class _TrialInfo extends StatelessWidget {
                   ? 'Seu trial termina em $days ${days == 1 ? 'dia' : 'dias'}'
                   : 'Seu trial terminou',
               style: TextStyle(
-                color: expiring ? AppColors.warning : AppColors.textPrimary,
+                color: expiring ? AppColors.warning : colors.textPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -216,13 +219,14 @@ class _InfoLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+        Text(label, style: TextStyle(color: colors.textSecondary, fontSize: 14)),
         Text(value,
-            style: const TextStyle(
-                color: AppColors.textPrimary,
+            style: TextStyle(
+                color: colors.textPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w600)),
       ],
@@ -245,12 +249,13 @@ class _PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: danger ? AppColors.surface : AppColors.primary,
+          backgroundColor: danger ? colors.surface : AppColors.primary,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

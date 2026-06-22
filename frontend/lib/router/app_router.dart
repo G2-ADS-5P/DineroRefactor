@@ -95,7 +95,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/portfolio/pesquisar/ativo/:id',
         builder: (_, state) => AssetDetailScreen(
           assetId: state.pathParameters['id']!,
-          marketAsset: true,
         ),
       ),
     ],

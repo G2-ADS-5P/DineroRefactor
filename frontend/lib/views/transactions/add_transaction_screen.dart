@@ -1,3 +1,4 @@
+import 'package:dinero/core/constants/mock_data.dart';
 import 'package:dinero/core/theme/app_colors.dart';
 import 'package:dinero/models/transaction.dart';
 import 'package:dinero/providers/providers.dart';
@@ -12,6 +13,7 @@ class AddTransactionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
     final state = ref.watch(addTransactionViewModelProvider);
     final vm = ref.read(addTransactionViewModelProvider.notifier);
     final isExpense = state.type == TransactionType.expense;
@@ -20,21 +22,20 @@ class AddTransactionScreen extends ConsumerWidget {
     ref.listen(addTransactionViewModelProvider, (_, next) {
       if (next.status == AddTransactionStatus.success) {
         ref.read(dashboardViewModelProvider.notifier).refresh();
-        ref.read(categoriesViewModelProvider.notifier).refresh();
         context.pop();
       }
     });
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 18),
+          icon: Icon(Icons.arrow_back_ios_new, color: colors.textPrimary, size: 18),
           onPressed: () => context.pop(),
         ),
-        title: const Text('Nova transação',
-            style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
+        title: Text('Nova transação',
+            style: TextStyle(color: colors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -45,7 +46,7 @@ class AddTransactionScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceAlt,
+                  color: colors.surfaceAlt,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -64,7 +65,7 @@ class AddTransactionScreen extends ConsumerWidget {
                             'Despesa',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: isExpense ? Colors.white : AppColors.textSecondary,
+                              color: isExpense ? Colors.white : colors.textSecondary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -85,7 +86,7 @@ class AddTransactionScreen extends ConsumerWidget {
                             'Receita',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: !isExpense ? Colors.white : AppColors.textSecondary,
+                              color: !isExpense ? Colors.white : colors.textSecondary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -115,10 +116,10 @@ class AddTransactionScreen extends ConsumerWidget {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: state.categories.length,
+                itemCount: MockData.categories.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (_, i) {
-                  final cat = state.categories[i];
+                  final cat = MockData.categories[i];
                   return CategoryChip(
                     category: cat,
                     isSelected: state.selectedCategoryId == cat.id,
@@ -133,11 +134,11 @@ class AddTransactionScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: TextField(
-                style: const TextStyle(color: AppColors.textPrimary),
+                style: TextStyle(color: colors.textPrimary),
                 onChanged: vm.setDescription,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Ex: Supermercado, restaurante...',
-                  prefixIcon: Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 18),
+                  prefixIcon: Icon(Icons.edit_outlined, color: colors.textSecondary, size: 18),
                 ),
               ),
             ),
@@ -170,17 +171,6 @@ class AddTransactionScreen extends ConsumerWidget {
                 ),
               ),
             ),
-
-            // Error message
-            if (state.errorMessage != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                child: Text(
-                  state.errorMessage!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.expense, fontSize: 13),
-                ),
-              ),
 
             // Submit button
             Padding(
@@ -225,20 +215,21 @@ class _KeypadButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surfaceAlt,
+          color: colors.surfaceAlt,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
           child: icon != null
-              ? Icon(icon, color: AppColors.textPrimary, size: 20)
+              ? Icon(icon, color: colors.textPrimary, size: 20)
               : Text(
                   label!,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),

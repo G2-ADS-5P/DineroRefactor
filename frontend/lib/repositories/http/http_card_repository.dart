@@ -65,7 +65,7 @@ class HttpCardRepository implements ICardRepository {
       case 'ELO':
         return AppColors.bancoBrasil;
       default:
-        return AppColors.surfaceAlt;
+        return AppColors.dark.surfaceAlt;
     }
   }
 

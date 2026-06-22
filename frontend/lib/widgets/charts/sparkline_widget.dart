@@ -23,6 +23,7 @@ class SparklineWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) return const SizedBox.shrink();
+    final colors = AppColors.of(context);
     final color = isPositive ? AppColors.income : AppColors.expense;
     final spots = data
         .asMap()
@@ -66,8 +67,8 @@ class SparklineWidget extends StatelessWidget {
                         space: 8,
                         child: Text(
                           _formatAxisDate(dates[index]),
-                          style: const TextStyle(
-                            color: AppColors.textMuted,
+                          style: TextStyle(
+                            color: colors.textMuted,
                             fontSize: 10,
                           ),
                         ),
@@ -85,7 +86,7 @@ class SparklineWidget extends StatelessWidget {
                   maxContentWidth: 170,
                   fitInsideHorizontally: true,
                   fitInsideVertically: true,
-                  getTooltipColor: (_) => AppColors.surfaceAlt,
+                  getTooltipColor: (_) => colors.surfaceAlt,
                   getTooltipItems: (touchedSpots) => touchedSpots
                       .map(
                         (spot) => LineTooltipItem(

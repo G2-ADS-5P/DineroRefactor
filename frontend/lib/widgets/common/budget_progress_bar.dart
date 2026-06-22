@@ -13,12 +13,13 @@ class BudgetProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final clamped = percent.clamp(0.0, 1.0);
     return ClipRRect(
       borderRadius: BorderRadius.circular(4),
       child: Container(
         height: 6,
-        color: AppColors.surfaceAlt,
+        color: colors.surfaceAlt,
         child: FractionallySizedBox(
           alignment: Alignment.centerLeft,
           widthFactor: clamped,

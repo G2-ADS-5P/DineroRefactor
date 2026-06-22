@@ -31,12 +31,13 @@ class _DonutChartWidgetState extends State<DonutChartWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final filtered = widget.stats.where((s) => s.spent > 0).toList();
     if (filtered.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         height: 200,
         child: Center(
-          child: Text('Sem gastos', style: TextStyle(color: AppColors.textSecondary)),
+          child: Text('Sem gastos', style: TextStyle(color: colors.textSecondary)),
         ),
       );
     }
@@ -48,8 +49,8 @@ class _DonutChartWidgetState extends State<DonutChartWidget> {
         value: s.spent,
         title: _animated ? '${(pct * 100).toStringAsFixed(0)}%' : '',
         radius: _animated ? 50 : 0,
-        titleStyle: const TextStyle(
-          color: AppColors.textPrimary,
+        titleStyle: TextStyle(
+          color: colors.textPrimary,
           fontSize: 11,
           fontWeight: FontWeight.w600,
         ),
@@ -76,15 +77,15 @@ class _DonutChartWidgetState extends State<DonutChartWidget> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'Total gasto',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 12),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   CurrencyFormatter.format(widget.totalSpent),
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),

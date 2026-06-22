@@ -12,16 +12,17 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
     final state = ref.watch(dashboardViewModelProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: state.isLoading
             ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
             : RefreshIndicator(
                 color: AppColors.primary,
-                backgroundColor: AppColors.surface,
+                backgroundColor: colors.surface,
                 onRefresh: () => ref.read(dashboardViewModelProvider.notifier).refresh(),
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
@@ -30,15 +31,15 @@ class DashboardScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Boa noite,', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
-                            Text('Gabriel', style: TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.w700)),
+                            Text('Boa noite,', style: TextStyle(color: colors.textSecondary, fontSize: 14)),
+                            Text('Gabriel', style: TextStyle(color: colors.textPrimary, fontSize: 22, fontWeight: FontWeight.w700)),
                           ],
                         ),
                         IconButton(
-                          icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary),
+                          icon: Icon(Icons.notifications_outlined, color: colors.textPrimary),
                           onPressed: () => context.push('/config/notificacoes'),
                         ),
                       ],
@@ -49,9 +50,9 @@ class DashboardScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: colors.surface,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: colors.border),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,9 +60,9 @@ class DashboardScreen extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 'SALDO TOTAL',
-                                style: TextStyle(color: AppColors.textSecondary, fontSize: 12, letterSpacing: 1),
+                                style: TextStyle(color: colors.textSecondary, fontSize: 12, letterSpacing: 1),
                               ),
                               GestureDetector(
                                 onTap: () => ref.read(dashboardViewModelProvider.notifier).toggleBalanceVisibility(),
@@ -69,7 +70,7 @@ class DashboardScreen extends ConsumerWidget {
                                   state.balanceHidden
                                       ? Icons.visibility_outlined
                                       : Icons.visibility_off_outlined,
-                                  color: AppColors.textMuted,
+                                  color: colors.textMuted,
                                   size: 20,
                                 ),
                               ),
@@ -80,19 +81,19 @@ class DashboardScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               if (state.balanceHidden) ...[
-                                const Text(
+                                Text(
                                   'R\$',
                                   style: TextStyle(
-                                    color: AppColors.textPrimary,
+                                    color: colors.textPrimary,
                                     fontSize: 32,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 const SizedBox(width: 10),
-                                const Text(
+                                Text(
                                   '••••••',
                                   style: TextStyle(
-                                    color: AppColors.textPrimary,
+                                    color: colors.textPrimary,
                                     fontSize: 26,
                                     letterSpacing: 4,
                                   ),
@@ -100,8 +101,8 @@ class DashboardScreen extends ConsumerWidget {
                               ] else
                                 Text(
                                   CurrencyFormatter.format(state.totalBalance),
-                                  style: const TextStyle(
-                                    color: AppColors.textPrimary,
+                                  style: TextStyle(
+                                    color: colors.textPrimary,
                                     fontSize: 32,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -132,9 +133,9 @@ class DashboardScreen extends ConsumerWidget {
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: AppColors.surface,
+                              color: colors.surface,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.border),
+                              border: Border.all(color: colors.border),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,15 +151,15 @@ class DashboardScreen extends ConsumerWidget {
                                       child: const Icon(Icons.arrow_downward, color: AppColors.income, size: 14),
                                     ),
                                     const SizedBox(width: 8),
-                                    const Text('Entradas', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                                    Text('Entradas', style: TextStyle(color: colors.textSecondary, fontSize: 12)),
                                   ],
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   CurrencyFormatter.format(state.monthlyIncome),
-                                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w700),
+                                  style: TextStyle(color: colors.textPrimary, fontSize: 16, fontWeight: FontWeight.w700),
                                 ),
-                                const Text('Este mês', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                                Text('Este mês', style: TextStyle(color: colors.textMuted, fontSize: 11)),
                               ],
                             ),
                           ),
@@ -168,9 +169,9 @@ class DashboardScreen extends ConsumerWidget {
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: AppColors.surface,
+                              color: colors.surface,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.border),
+                              border: Border.all(color: colors.border),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,15 +187,15 @@ class DashboardScreen extends ConsumerWidget {
                                       child: const Icon(Icons.arrow_upward, color: AppColors.expense, size: 14),
                                     ),
                                     const SizedBox(width: 8),
-                                    const Text('Saídas', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                                    Text('Saídas', style: TextStyle(color: colors.textSecondary, fontSize: 12)),
                                   ],
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   CurrencyFormatter.format(state.monthlyExpenses),
-                                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w700),
+                                  style: TextStyle(color: colors.textPrimary, fontSize: 16, fontWeight: FontWeight.w700),
                                 ),
-                                const Text('Este mês', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                                Text('Este mês', style: TextStyle(color: colors.textMuted, fontSize: 11)),
                               ],
                             ),
                           ),
@@ -207,7 +208,7 @@ class DashboardScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Cartões', style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
+                        Text('Cartões', style: TextStyle(color: colors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
                         TextButton(
                           onPressed: () => context.push('/config/cartoes'),
                           child: const Text('Ver todos >', style: TextStyle(color: AppColors.primary, fontSize: 13)),
@@ -225,7 +226,7 @@ class DashboardScreen extends ConsumerWidget {
                             child: Container(
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: AppColors.surface,
+                                color: colors.surface,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(color: card.color.withOpacity(0.35)),
                               ),
@@ -246,11 +247,11 @@ class DashboardScreen extends ConsumerWidget {
                                     ],
                                   ),
                                   const SizedBox(height: 10),
-                                  const Text('Fatura atual', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                                  Text('Fatura atual', style: TextStyle(color: colors.textSecondary, fontSize: 11)),
                                   const SizedBox(height: 2),
                                   Text(
                                     CurrencyFormatter.format(card.currentBill),
-                                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w700),
+                                    style: TextStyle(color: colors.textPrimary, fontSize: 15, fontWeight: FontWeight.w700),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
@@ -270,7 +271,7 @@ class DashboardScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Transações recentes', style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
+                        Text('Transações recentes', style: TextStyle(color: colors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
                         TextButton(
                           onPressed: () => context.push('/config/transacoes'),
                           child: const Text('Ver todos >', style: TextStyle(color: AppColors.primary, fontSize: 13)),
@@ -280,9 +281,9 @@ class DashboardScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: colors.surface,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: colors.border),
                       ),
                       child: Column(
                         children: state.recentTransactions.map((t) {

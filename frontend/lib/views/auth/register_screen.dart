@@ -45,6 +45,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final authState = ref.watch(authViewModelProvider);
 
     ref.listen(authViewModelProvider, (_, next) {
@@ -52,7 +53,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -73,20 +74,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Crie sua conta',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 16),
                 ),
                 const SizedBox(height: 40),
                 TextFormField(
                   controller: _nameController,
                   keyboardType: TextInputType.name,
                   textCapitalization: TextCapitalization.words,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: colors.textPrimary),
+                  decoration: InputDecoration(
                     labelText: 'Nome completo',
-                    prefixIcon: Icon(Icons.person_outline, color: AppColors.textSecondary),
+                    prefixIcon: Icon(Icons.person_outline, color: colors.textSecondary),
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) return 'Informe seu nome';
@@ -99,10 +100,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: colors.textPrimary),
+                  decoration: InputDecoration(
                     labelText: 'E-mail',
-                    prefixIcon: Icon(Icons.email_outlined, color: AppColors.textSecondary),
+                    prefixIcon: Icon(Icons.email_outlined, color: colors.textSecondary),
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) return 'Informe seu e-mail';
@@ -115,16 +116,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
-                  style: const TextStyle(color: AppColors.textPrimary),
+                  style: TextStyle(color: colors.textPrimary),
                   decoration: InputDecoration(
                     labelText: 'Senha',
-                    prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textSecondary),
+                    prefixIcon: Icon(Icons.lock_outline, color: colors.textSecondary),
                     helperText: 'Mín. 8 caracteres, 1 maiúscula, 1 minúscula e 1 número',
-                    helperStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                    helperStyle: TextStyle(color: colors.textSecondary, fontSize: 11),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                       onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
@@ -142,14 +143,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirm,
-                  style: const TextStyle(color: AppColors.textPrimary),
+                  style: TextStyle(color: colors.textPrimary),
                   decoration: InputDecoration(
                     labelText: 'Confirmar senha',
-                    prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textSecondary),
+                    prefixIcon: Icon(Icons.lock_outline, color: colors.textSecondary),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                       onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
                     ),
@@ -187,9 +188,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const SizedBox(height: 24),
                 TextButton(
                   onPressed: () => context.go('/login'),
-                  child: const Text(
+                  child: Text(
                     'Já tem conta? Entrar',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                    style: TextStyle(color: colors.textSecondary, fontSize: 14),
                   ),
                 ),
                 const SizedBox(height: 24),

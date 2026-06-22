@@ -71,25 +71,26 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final state = ref.watch(transactionsViewModelProvider);
     final vm = ref.read(transactionsViewModelProvider.notifier);
     final grouped = _groupByMonth(state.filtered);
     final monthKeys = grouped.keys.toList();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.background,
         elevation: 0,
         titleSpacing: 4,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 18),
+          icon: Icon(Icons.arrow_back_ios_new, color: colors.textPrimary, size: 18),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'Transações',
           style: TextStyle(
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             fontSize: 22,
             fontWeight: FontWeight.w700,
           ),
@@ -100,11 +101,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.surfaceAlt,
+              color: colors.surfaceAlt,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: colors.border),
             ),
-            child: const Icon(Icons.tune_rounded, color: AppColors.textSecondary, size: 18),
+            child: Icon(Icons.tune_rounded, color: colors.textSecondary, size: 18),
           ),
         ],
       ),
@@ -118,20 +119,20 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   child: Container(
                     height: 44,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceAlt,
+                      color: colors.surfaceAlt,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: colors.border),
                     ),
                     child: TextField(
                       controller: _searchController,
                       onChanged: vm.setSearch,
-                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: colors.textPrimary, fontSize: 14),
+                      decoration: InputDecoration(
                         hintText: 'Buscar transação...',
-                        hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 14),
-                        prefixIcon: Icon(Icons.search, color: AppColors.textMuted, size: 20),
+                        hintStyle: TextStyle(color: colors.textMuted, fontSize: 14),
+                        prefixIcon: Icon(Icons.search, color: colors.textMuted, size: 20),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
                   ),
@@ -156,17 +157,17 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                           duration: const Duration(milliseconds: 180),
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: isSelected ? Colors.transparent : AppColors.surfaceAlt,
+                            color: isSelected ? Colors.transparent : colors.surfaceAlt,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: isSelected ? AppColors.primary : AppColors.border,
+                              color: isSelected ? AppColors.primary : colors.border,
                               width: isSelected ? 1.5 : 1,
                             ),
                           ),
                           child: Text(
                             label,
                             style: TextStyle(
-                              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                              color: isSelected ? AppColors.primary : colors.textSecondary,
                               fontSize: 13,
                               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                             ),
@@ -182,10 +183,10 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 // Grouped list
                 Expanded(
                   child: grouped.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Text(
                             'Nenhuma transação encontrada',
-                            style: TextStyle(color: AppColors.textMuted, fontSize: 14),
+                            style: TextStyle(color: colors.textMuted, fontSize: 14),
                           ),
                         )
                       : ListView.builder(
@@ -200,8 +201,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                                   child: Text(
                                     month,
-                                    style: const TextStyle(
-                                      color: AppColors.textMuted,
+                                    style: TextStyle(
+                                      color: colors.textMuted,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                       letterSpacing: 0.8,
@@ -226,9 +227,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                       : dateStr;
 
                                   return Container(
-                                    decoration: const BoxDecoration(
+                                    decoration: BoxDecoration(
                                       border: Border(
-                                        bottom: BorderSide(color: AppColors.border, width: 0.5),
+                                        bottom: BorderSide(color: colors.border, width: 0.5),
                                       ),
                                     ),
                                     child: ListTile(
@@ -237,27 +238,27 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                         width: 42,
                                         height: 42,
                                         decoration: BoxDecoration(
-                                          color: AppColors.surfaceAlt,
+                                          color: colors.surfaceAlt,
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                         child: Icon(
                                           _iconFor(t),
-                                          color: AppColors.textSecondary,
+                                          color: colors.textSecondary,
                                           size: 20,
                                         ),
                                       ),
                                       title: Text(
                                         t.description,
-                                        style: const TextStyle(
-                                          color: AppColors.textPrimary,
+                                        style: TextStyle(
+                                          color: colors.textPrimary,
                                           fontSize: 14,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                       subtitle: Text(
                                         '${cat.name} · $formattedDate',
-                                        style: const TextStyle(
-                                          color: AppColors.textSecondary,
+                                        style: TextStyle(
+                                          color: colors.textSecondary,
                                           fontSize: 12,
                                         ),
                                       ),
