@@ -1,4 +1,5 @@
 import 'package:dinero/core/http/api_exception.dart';
+import 'package:dinero/core/network/token_storage.dart' as financial;
 import 'package:dinero/core/storage/token_storage.dart';
 import 'package:dinero/models/create_user_data.dart';
 import 'package:dinero/repositories/interfaces/i_auth_repository.dart';
@@ -34,8 +35,9 @@ class AuthState {
 class AuthViewModel extends StateNotifier<AuthState> {
   final IAuthRepository _authRepository;
   final TokenStorage _tokenStorage;
+  final financial.TokenStorage _financialTokenStorage;
 
-  AuthViewModel(this._authRepository, this._tokenStorage)
+  AuthViewModel(this._authRepository, this._tokenStorage, this._financialTokenStorage)
       : super(const AuthState()) {
     _restoreSession();
   }
@@ -43,6 +45,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
   Future<void> _restoreSession() async {
     final token = await _tokenStorage.getToken();
     if (token != null && token.isNotEmpty) {
+      _financialTokenStorage.save(token);
       state = state.copyWith(isAuthenticated: true);
     }
   }
@@ -52,6 +55,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
     try {
       final result = await _authRepository.login(email, password);
       await _tokenStorage.saveToken(result.token);
+      _financialTokenStorage.save(result.token);
       state = state.copyWith(isAuthenticated: true, isLoading: false);
     } on ApiException catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.message);
@@ -63,6 +67,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
     try {
       final result = await _authRepository.register(data);
       await _tokenStorage.saveToken(result.token);
+      _financialTokenStorage.save(result.token);
       state = state.copyWith(isAuthenticated: true, isLoading: false);
     } on ApiException catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.message);
@@ -71,6 +76,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
 
   Future<void> logout() async {
     await _tokenStorage.clear();
+    _financialTokenStorage.clear();
     state = const AuthState();
   }
 }

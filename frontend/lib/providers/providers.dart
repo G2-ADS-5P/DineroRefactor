@@ -115,6 +115,7 @@ final authViewModelProvider = StateNotifierProvider<AuthViewModel, AuthState>(
   (ref) => AuthViewModel(
     ref.watch(authRepositoryProvider),
     ref.watch(secureTokenStorageProvider),
+    ref.watch(tokenStorageProvider),
   ),
 );
 
