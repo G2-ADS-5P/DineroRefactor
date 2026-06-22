@@ -765,15 +765,23 @@ export class BrapiQuotationService implements AssetQuotationService {
   }
 
   private async fetchJson<T>(url: URL): Promise<T> {
-    const response = await fetch(url, {
-      headers: this.token ? { Authorization: `Bearer ${this.token}` } : {},
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
 
-    if (!response.ok) {
-      throw new Error(`Brapi request failed with status ${response.status}`);
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: this.token ? { Authorization: `Bearer ${this.token}` } : {},
+      });
+
+      if (!response.ok) {
+        throw new Error(`Brapi request failed with status ${response.status}`);
+      }
+
+      return (await response.json()) as T;
+    } finally {
+      clearTimeout(timeout);
     }
-
-    return (await response.json()) as T;
   }
 
   private async fetchCryptoQuote(ticker: string): Promise<AssetQuote | null> {
