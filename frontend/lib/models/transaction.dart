@@ -7,6 +7,7 @@ class Transaction {
   final double exchangeRate;
   final double valueInBrl;
   final TransactionType type;
+  final String? cardId;
   final String categoryId;
   final String description;
   final DateTime date;
@@ -19,6 +20,7 @@ class Transaction {
     required this.exchangeRate,
     required this.valueInBrl,
     required this.type,
+    this.cardId,
     required this.categoryId,
     required this.description,
     required this.date,

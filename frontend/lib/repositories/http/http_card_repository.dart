@@ -14,7 +14,14 @@ class HttpCardRepository implements ICardRepository {
   Future<List<CardModel>> getAll() async {
     final raw = await _client.get(BackendService.financial, '/cards');
     final result = ApiClient.unwrapList(raw);
-    return result.items.map(_mapCard).toList();
+    final localCards = result.items.map(_mapCard).toList();
+
+    try {
+      final openFinanceCards = await _getOpenFinanceCards();
+      return [...localCards, ...openFinanceCards];
+    } catch (_) {
+      return localCards;
+    }
   }
 
   @override
@@ -50,9 +57,64 @@ class HttpCardRepository implements ICardRepository {
       dueDays: (j['dueDay'] as num?)?.toInt() ?? 0,
       lastFour: j['lastDigits'] as String? ?? '',
       network: brand,
-      creditLimit: j['creditLimit'] != null ? _toDouble(j['creditLimit']) : null,
+      creditLimit:
+          j['creditLimit'] != null ? _toDouble(j['creditLimit']) : null,
       color: _colorForBrand(brand),
       isDebit: false,
+      isOpenFinance: false,
+    );
+  }
+
+  Future<List<CardModel>> _getOpenFinanceCards() async {
+    final rawConnections = await _client.get(
+      BackendService.openfinance,
+      '/bank-connections',
+    );
+    final connections = ApiClient.unwrapList(rawConnections).items;
+
+    final cardGroups = await Future.wait(
+      connections.map((connection) async {
+        final connectionId = connection['id'] as String?;
+        if (connectionId == null) return <CardModel>[];
+
+        try {
+          final rawCards = await _client.get(
+            BackendService.openfinance,
+            '/bank-connections/$connectionId/cards',
+          );
+          final bankName = connection['bankName'] as String? ?? 'Open Finance';
+          return ApiClient.unwrapList(rawCards)
+              .items
+              .map((card) => _mapOpenFinanceCard(card, bankName))
+              .toList();
+        } catch (_) {
+          return <CardModel>[];
+        }
+      }),
+    );
+
+    return cardGroups.expand((cards) => cards).toList();
+  }
+
+  CardModel _mapOpenFinanceCard(
+    Map<String, dynamic> card,
+    String bankName,
+  ) {
+    final brand = (card['cardBrand'] as String? ?? '').toUpperCase();
+    final id = card['id']?.toString() ??
+        '${card['bankConnectionId']}:${card['lastFourDigits']}';
+
+    return CardModel(
+      id: 'openfinance:$id',
+      name: '$bankName ${card['cardBrand'] ?? ''}'.trim(),
+      currentBill: _toDouble(card['currentBill']),
+      dueDays: int.tryParse(card['dueDay']?.toString() ?? '') ?? 0,
+      color: _colorForBrand(brand),
+      lastFour: card['lastFourDigits']?.toString() ?? '',
+      network: brand,
+      creditLimit: _toDouble(card['cardLimit']),
+      isDebit: false,
+      isOpenFinance: true,
     );
   }
 

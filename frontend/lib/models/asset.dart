@@ -197,6 +197,20 @@ class PortfolioSnapshot {
   }
 }
 
+class AssetHistorySeries {
+  final List<double> values;
+  final List<DateTime> dates;
+
+  const AssetHistorySeries({required this.values, required this.dates});
+
+  factory AssetHistorySeries.fromJson(Object? json) {
+    return AssetHistorySeries(
+      values: Asset._historyValues(json),
+      dates: Asset._historyDates(json),
+    );
+  }
+}
+
 class PortfolioHistoryPoint {
   final DateTime date;
   final double value;

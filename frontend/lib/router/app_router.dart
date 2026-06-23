@@ -27,8 +27,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: authState.isAuthenticated ? '/' : '/login',
     redirect: (context, state) {
       final isAuth = ref.read(authViewModelProvider).isAuthenticated;
-      final isAuthRoute = state.matchedLocation == '/login'
-          || state.matchedLocation == '/register';
+      final isAuthRoute = state.matchedLocation == '/login' ||
+          state.matchedLocation == '/register';
       if (!isAuth && !isAuthRoute) return '/login';
       if (isAuth && isAuthRoute) return '/';
       return null;
@@ -95,6 +95,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/portfolio/pesquisar/ativo/:id',
         builder: (_, state) => AssetDetailScreen(
           assetId: state.pathParameters['id']!,
+          marketAsset: true,
         ),
       ),
     ],

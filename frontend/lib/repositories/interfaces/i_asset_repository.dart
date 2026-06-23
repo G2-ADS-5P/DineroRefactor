@@ -5,6 +5,10 @@ abstract class IAssetRepository {
   Future<List<Asset>> getAll({String range = '1A'});
   Future<Asset?> getById(String id);
   Future<Asset?> getMarketAssetById(String id, {String range = '1M'});
+  Future<AssetHistorySeries> getHistory(
+    String id, {
+    String range = '1M',
+  });
   Future<List<Asset>> search({
     String query = '',
     String? type,

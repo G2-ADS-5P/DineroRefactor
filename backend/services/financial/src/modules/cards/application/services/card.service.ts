@@ -96,4 +96,17 @@ export class CardService {
 
     await this.cardRepository.delete(id);
   }
+
+  async addToCurrentBill(
+    externalUserId: string,
+    id: string,
+    amount: number,
+  ): Promise<void> {
+    const localUser = await this.userService.ensureLocalUser(externalUserId);
+    const card = await this.cardRepository.findByIdAndUserId(id, localUser.id!);
+    if (!card) throw new NotFoundException("Card not found");
+
+    card.withCurrentBill(card.currentBill + amount);
+    await this.cardRepository.update(card);
+  }
 }

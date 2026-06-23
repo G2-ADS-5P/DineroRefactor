@@ -14,18 +14,21 @@ class FinanceFacade {
     required String currency,
     required String categoryId,
     required String description,
+    String? cardId,
   }) async {
     final transaction = TransactionFactory.createExpense(
       value: value,
       currency: currency,
       categoryId: categoryId,
       description: description,
+      cardId: cardId,
     );
     await _transactionRepo.save(transaction);
 
     final budget = await _categoryRepo.getBudget(categoryId);
     if (budget != null) {
-      final spent = await _transactionRepo.getMonthlySpentByCategory(categoryId);
+      final spent =
+          await _transactionRepo.getMonthlySpentByCategory(categoryId);
       final percent = spent / budget.amount;
       if (percent >= 1.0) {
         // TODO: notificação alerta vermelho
@@ -52,8 +55,7 @@ class FinanceFacade {
     return transaction;
   }
 
-  Future<double> getTotalBalance() async =>
-      _transactionRepo.getTotalBalance();
+  Future<double> getTotalBalance() async => _transactionRepo.getTotalBalance();
 
   Future<Map<String, double>> getMonthlyStats() async {
     final income = await _transactionRepo.getMonthlyIncome();

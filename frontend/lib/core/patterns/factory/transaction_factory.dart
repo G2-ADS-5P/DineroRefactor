@@ -8,6 +8,7 @@ class TransactionFactory {
     required double exchangeRate,
     required double valueInBrl,
     required TransactionType type,
+    String? cardId,
     required String categoryId,
     required String description,
     required DateTime date,
@@ -19,6 +20,7 @@ class TransactionFactory {
         exchangeRate: exchangeRate,
         valueInBrl: valueInBrl,
         type: type,
+        cardId: cardId,
         categoryId: categoryId,
         description: description,
         date: date,
@@ -38,6 +40,7 @@ class TransactionFactory {
     required String currency,
     required String categoryId,
     required String description,
+    String? cardId,
     DateTime? date,
   }) {
     final rate = _mockRates[currency] ?? 1.0;
@@ -48,6 +51,7 @@ class TransactionFactory {
       exchangeRate: rate,
       valueInBrl: value * rate,
       type: TransactionType.expense,
+      cardId: cardId,
       categoryId: categoryId,
       description: description,
       date: date ?? DateTime.now(),

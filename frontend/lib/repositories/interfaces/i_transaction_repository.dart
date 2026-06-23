@@ -8,4 +8,5 @@ abstract class ITransactionRepository {
   Future<double> getMonthlyIncome();
   Future<double> getMonthlyExpenses();
   Future<double> getMonthlySpentByCategory(String categoryId);
+  Future<Map<String, double>> getMonthlySpentByCategories();
 }

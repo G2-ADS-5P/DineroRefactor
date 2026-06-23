@@ -6,10 +6,12 @@ import { Transaction } from "@transactions/domain/models/transaction.entity";
 import { TRANSACTION_REPOSITORY } from "@transactions/domain/repositories/transaction-repository.interface";
 import { UserService } from "@users/application/services/user.service";
 import { User } from "@users/domain/models/user.entity";
+import { CardService } from "@cards/application/services/card.service";
 
 const LOCAL_USER_ID = "aaaaaaaa-0000-0000-0000-000000000001";
 const EXTERNAL_USER_ID = "bbbbbbbb-0000-0000-0000-000000000002";
 const TX_ID = "cccccccc-0000-0000-0000-000000000003";
+const CARD_ID = "dddddddd-0000-0000-0000-000000000004";
 
 function makeUser(): User {
   return User.restore({
@@ -64,6 +66,11 @@ describe("TransactionService", () => {
     publishTransactionDeleted: jest.fn(),
   };
 
+  const mockCardService = {
+    findById: jest.fn(),
+    addToCurrentBill: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -73,6 +80,7 @@ describe("TransactionService", () => {
         { provide: TRANSACTION_REPOSITORY, useValue: mockRepo },
         { provide: UserService, useValue: mockUserService },
         { provide: TransactionMessagingService, useValue: mockMessaging },
+        { provide: CardService, useValue: mockCardService },
       ],
     }).compile();
 
@@ -120,6 +128,40 @@ describe("TransactionService", () => {
 
       expect(mockRepo.create).not.toHaveBeenCalled();
       expect(mockMessaging.publishTransactionCreated).not.toHaveBeenCalled();
+    });
+
+    it("deve vincular a despesa ao cartão e atualizar a fatura", async () => {
+      mockUserService.ensureLocalUser.mockResolvedValue(makeUser());
+      mockCardService.findById.mockResolvedValue({ id: CARD_ID });
+      mockCardService.addToCurrentBill.mockResolvedValue(undefined);
+      mockRepo.create.mockResolvedValue(undefined);
+      mockRepo.findAllByUserIdPaginated.mockResolvedValue({
+        rows: [makeTransaction()],
+        total: 1,
+      });
+      mockMessaging.publishTransactionCreated.mockResolvedValue(undefined);
+
+      await service.create(EXTERNAL_USER_ID, {
+        amount: 125.5,
+        currency: "BRL",
+        type: "expense",
+        description: "Supermercado",
+        date: "2026-05-26T00:00:00Z",
+        cardId: CARD_ID,
+      });
+
+      expect(mockCardService.findById).toHaveBeenCalledWith(
+        EXTERNAL_USER_ID,
+        CARD_ID,
+      );
+      expect(mockRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ cardId: CARD_ID }),
+      );
+      expect(mockCardService.addToCurrentBill).toHaveBeenCalledWith(
+        EXTERNAL_USER_ID,
+        CARD_ID,
+        125.5,
+      );
     });
   });
 

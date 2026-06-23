@@ -68,15 +68,10 @@ export class AssetService {
       const data = await Promise.all(
         marketResult.items.map(async (marketAsset) => {
           const asset = await this.createOrUpdateMarketAsset(marketAsset);
-          const history = await this.getHistoryPoints(
-            asset.ticker,
-            params.range ?? "1M",
-          );
-
           return AssetMarketDto.fromMarket(
             asset,
             this.marketAssetToQuote(marketAsset),
-            history,
+            [],
           );
         }),
       );
@@ -97,15 +92,10 @@ export class AssetService {
 
     const data = await Promise.all(
       rows.map(async (asset) => {
-        const history = await this.getHistoryPoints(
-          asset.ticker,
-          params.range ?? "1M",
-        );
-
         return AssetMarketDto.fromMarket(
           asset,
           quoteMap.get(asset.ticker) ?? null,
-          history,
+          [],
         );
       }),
     );
