@@ -103,6 +103,22 @@ class HttpAssetRepository implements IAssetRepository {
   }
 
   @override
+  Future<AssetHistorySeries> getHistory(
+    String id, {
+    String range = '1M',
+  }) async {
+    try {
+      final response = await _client.dio.get(
+        '/assets/$id/history',
+        queryParameters: {'range': range},
+      );
+      return AssetHistorySeries.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _client.toApiException(e);
+    }
+  }
+
+  @override
   Future<List<Asset>> search({
     String query = '',
     String? type,

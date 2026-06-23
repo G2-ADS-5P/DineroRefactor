@@ -79,7 +79,9 @@ class AddTransactionViewModel extends StateNotifier<AddTransactionState> {
 
   Future<void> _load() async {
     final cats = await _categoryRepo.getAll();
-    final cards = await _cardRepo.getAll();
+    final cards = (await _cardRepo.getAll())
+        .where((card) => !card.isOpenFinance)
+        .toList();
     state = state.copyWith(
       categories: cats,
       cards: cards,
@@ -122,7 +124,8 @@ class AddTransactionViewModel extends StateNotifier<AddTransactionState> {
     if (current.length <= 1) {
       state = state.copyWith(displayValue: '0');
     } else {
-      state = state.copyWith(displayValue: current.substring(0, current.length - 1));
+      state = state.copyWith(
+          displayValue: current.substring(0, current.length - 1));
     }
   }
 
@@ -135,7 +138,8 @@ class AddTransactionViewModel extends StateNotifier<AddTransactionState> {
       );
       return;
     }
-    state = state.copyWith(status: AddTransactionStatus.loading, errorMessage: null);
+    state = state.copyWith(
+        status: AddTransactionStatus.loading, errorMessage: null);
     try {
       if (state.type == TransactionType.expense) {
         await _facade.registerExpense(
@@ -143,6 +147,7 @@ class AddTransactionViewModel extends StateNotifier<AddTransactionState> {
           currency: state.currency,
           categoryId: state.selectedCategoryId,
           description: state.description,
+          cardId: state.selectedCardId,
         );
       } else {
         await _facade.registerIncome(
@@ -154,9 +159,12 @@ class AddTransactionViewModel extends StateNotifier<AddTransactionState> {
       }
       state = state.copyWith(status: AddTransactionStatus.success);
     } on ApiException catch (e) {
-      state = state.copyWith(status: AddTransactionStatus.error, errorMessage: e.message);
+      state = state.copyWith(
+          status: AddTransactionStatus.error, errorMessage: e.message);
     } catch (_) {
-      state = state.copyWith(status: AddTransactionStatus.error, errorMessage: 'Erro ao registrar transação.');
+      state = state.copyWith(
+          status: AddTransactionStatus.error,
+          errorMessage: 'Erro ao registrar transação.');
     }
   }
 

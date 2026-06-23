@@ -15,6 +15,7 @@ import {
   type TransactionRepository,
 } from "@transactions/domain/repositories/transaction-repository.interface";
 import { UserService } from "@users/application/services/user.service";
+import { CardService } from "@cards/application/services/card.service";
 
 @Injectable()
 export class TransactionService {
@@ -23,6 +24,7 @@ export class TransactionService {
     private readonly transactionRepository: TransactionRepository,
     private readonly userService: UserService,
     private readonly transactionMessagingService: TransactionMessagingService,
+    private readonly cardService: CardService,
   ) {}
 
   async create(
@@ -36,6 +38,10 @@ export class TransactionService {
     }
 
     const localUser = await this.userService.ensureLocalUser(externalUserId);
+
+    if (dto.cardId) {
+      await this.cardService.findById(externalUserId, dto.cardId);
+    }
 
     if (dto.clientUuid) {
       const existing =
@@ -65,6 +71,14 @@ export class TransactionService {
     })!;
 
     await this.transactionRepository.create(transaction);
+
+    if (dto.cardId && dto.type === "expense") {
+      await this.cardService.addToCurrentBill(
+        externalUserId,
+        dto.cardId,
+        dto.amount,
+      );
+    }
 
     const { rows } = await this.transactionRepository.findAllByUserIdPaginated(
       localUser.id!,

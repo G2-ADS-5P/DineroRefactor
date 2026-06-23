@@ -54,8 +54,8 @@ class AssetRow extends StatelessWidget {
                           fontSize: 14,
                           fontWeight: FontWeight.w600)),
                   Text(asset.name,
-                      style: TextStyle(
-                          color: colors.textSecondary, fontSize: 12)),
+                      style:
+                          TextStyle(color: colors.textSecondary, fontSize: 12)),
                 ],
               ),
             ),
@@ -63,7 +63,11 @@ class AssetRow extends StatelessWidget {
               width: 60,
               height: 30,
               child: SparklineWidget(
-                  data: asset.priceHistory, isPositive: isPositive),
+                data: asset.priceHistory,
+                dates: asset.priceHistoryDates,
+                isPositive: isPositive,
+                enableTooltip: true,
+              ),
             ),
             const SizedBox(width: 12),
             Column(

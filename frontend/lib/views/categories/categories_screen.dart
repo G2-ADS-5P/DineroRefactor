@@ -7,6 +7,7 @@ import 'package:dinero/widgets/common/budget_progress_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 class CategoriesScreen extends ConsumerStatefulWidget {
   const CategoriesScreen({super.key});
@@ -43,6 +44,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     final isCategories = path == '/categorias';
     if (isCategories && !_lastWasCategories) {
       setState(() => _chartKey++);
+      ref.read(categoriesViewModelProvider.notifier).refresh();
     }
     _lastWasCategories = isCategories;
   }
@@ -54,7 +56,9 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => _NewCategorySheet(
         onSave: (category) {
-          ref.read(categoriesViewModelProvider.notifier).createCategory(category);
+          ref
+              .read(categoriesViewModelProvider.notifier)
+              .createCategory(category);
         },
       ),
     );
@@ -64,12 +68,14 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final state = ref.watch(categoriesViewModelProvider);
+    final monthLabel = _monthLabel(DateTime.now());
 
     return Scaffold(
       backgroundColor: colors.background,
       body: SafeArea(
         child: state.isLoading
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.primary))
             : ListView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                 children: [
@@ -94,7 +100,8 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                             color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.add, color: Colors.white, size: 20),
+                          child: const Icon(Icons.add,
+                              color: Colors.white, size: 20),
                         ),
                       ),
                     ],
@@ -107,7 +114,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Março 2026',
+                    monthLabel,
                     style: TextStyle(
                       color: colors.textPrimary,
                       fontSize: 16,
@@ -126,121 +133,139 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                           alignment: Alignment.centerRight,
-                          child: const Icon(Icons.delete_outline, color: AppColors.expense),
+                          child: const Icon(Icons.delete_outline,
+                              color: AppColors.expense),
                         ),
                         confirmDismiss: (_) async {
                           return await showDialog<bool>(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              backgroundColor: colors.surface,
-                              title: Text('Excluir categoria', style: TextStyle(color: colors.textPrimary)),
-                              content: Text(
-                                'Deseja excluir "${s.category.name}"?',
-                                style: TextStyle(color: colors.textSecondary),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
-                                  child: Text('Cancelar', style: TextStyle(color: colors.textSecondary)),
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  backgroundColor: colors.surface,
+                                  title: Text('Excluir categoria',
+                                      style:
+                                          TextStyle(color: colors.textPrimary)),
+                                  content: Text(
+                                    'Deseja excluir "${s.category.name}"?',
+                                    style:
+                                        TextStyle(color: colors.textSecondary),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                      child: Text('Cancelar',
+                                          style: TextStyle(
+                                              color: colors.textSecondary)),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                      child: const Text('Excluir',
+                                          style: TextStyle(
+                                              color: AppColors.expense)),
+                                    ),
+                                  ],
                                 ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Excluir', style: TextStyle(color: AppColors.expense)),
-                                ),
-                              ],
-                            ),
-                          ) ?? false;
+                              ) ??
+                              false;
                         },
                         onDismissed: (_) => ref
                             .read(categoriesViewModelProvider.notifier)
                             .deleteCategory(s.category.id),
                         child: GestureDetector(
-                        onTap: () => context.push('/categorias/${s.category.id}'),
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: colors.surface,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: colors.border),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Row 1: emoji + name + arrow
-                              Row(
-                                children: [
-                                  Text(
-                                    s.category.emoji,
-                                    style: const TextStyle(fontSize: 20),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      s.category.name,
-                                      style: TextStyle(
-                                        color: colors.textPrimary,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.chevron_right,
-                                    color: colors.textMuted,
-                                    size: 18,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              // Row 2: budget text + percent
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    s.budget != null
-                                        ? '${CurrencyFormatter.format(s.spent)} / ${CurrencyFormatter.format(s.budget!)}'
-                                        : CurrencyFormatter.format(s.spent),
-                                    style: TextStyle(
-                                      color: colors.textSecondary,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  if (s.budget != null)
+                          onTap: () =>
+                              context.push('/categorias/${s.category.id}'),
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: colors.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: colors.border),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Row 1: emoji + name + arrow
+                                Row(
+                                  children: [
                                     Text(
-                                      '${(s.percent * 100).toStringAsFixed(0)}%',
-                                      style: TextStyle(
-                                        color: s.percent >= 1.0
-                                            ? AppColors.danger
-                                            : s.percent >= 0.8
-                                                ? AppColors.warning
-                                                : s.category.color,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
+                                      s.category.emoji,
+                                      style: const TextStyle(fontSize: 20),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        s.category.name,
+                                        style: TextStyle(
+                                          color: colors.textPrimary,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
-                                ],
-                              ),
-                              if (s.budget != null) ...[
-                                const SizedBox(height: 8),
-                                BudgetProgressBar(
-                                  percent: s.percent,
-                                  color: s.percent >= 1.0
-                                      ? AppColors.danger
-                                      : s.percent >= 0.8
-                                          ? AppColors.warning
-                                          : s.category.color,
+                                    Icon(
+                                      Icons.chevron_right,
+                                      color: colors.textMuted,
+                                      size: 18,
+                                    ),
+                                  ],
                                 ),
+                                const SizedBox(height: 6),
+                                // Row 2: budget text + percent
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      s.budget != null
+                                          ? '${CurrencyFormatter.format(s.spent)} / ${CurrencyFormatter.format(s.budget!)}'
+                                          : CurrencyFormatter.format(s.spent),
+                                      style: TextStyle(
+                                        color: colors.textSecondary,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    if (s.budget != null)
+                                      Text(
+                                        '${(s.percent * 100).toStringAsFixed(0)}%',
+                                        style: TextStyle(
+                                          color: s.percent >= 1.0
+                                              ? AppColors.danger
+                                              : s.percent >= 0.8
+                                                  ? AppColors.warning
+                                                  : s.category.color,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                if (s.budget != null) ...[
+                                  const SizedBox(height: 8),
+                                  BudgetProgressBar(
+                                    percent: s.percent,
+                                    color: s.percent >= 1.0
+                                        ? AppColors.danger
+                                        : s.percent >= 0.8
+                                            ? AppColors.warning
+                                            : s.category.color,
+                                  ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    )),
+                      )),
                 ],
               ),
       ),
     );
+  }
+
+  String _monthLabel(DateTime date) {
+    final formatted = DateFormat('MMMM yyyy', 'pt_BR').format(date);
+    return '${formatted[0].toUpperCase()}${formatted.substring(1)}';
   }
 }
 
@@ -261,9 +286,30 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
   Color _selectedColor = const Color(0xFF3B82F6);
 
   static const _emojis = [
-    '🎯', '🎨', '🐕', '✈️', '🎁', '💼', '🏋️', '🛒',
-    '☕', '🎵', '📷', '🎸', '😊', '🎉', '🔧', '🕺',
-    '🚀', '💡', '🌱', '🍷', '🎮', '📦', '💳', '🏠',
+    '🎯',
+    '🎨',
+    '🐕',
+    '✈️',
+    '🎁',
+    '💼',
+    '🏋️',
+    '🛒',
+    '☕',
+    '🎵',
+    '📷',
+    '🎸',
+    '😊',
+    '🎉',
+    '🔧',
+    '🕺',
+    '🚀',
+    '💡',
+    '🌱',
+    '🍷',
+    '🎮',
+    '📦',
+    '💳',
+    '🏠',
   ];
 
   static const _colors = [
@@ -313,15 +359,17 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final previewName =
-        _nameController.text.isEmpty ? 'Nome da categoria' : _nameController.text;
+    final previewName = _nameController.text.isEmpty
+        ? 'Nome da categoria'
+        : _nameController.text;
     final budgetVal = _parsedBudget;
     final budgetText = budgetVal != null && budgetVal > 0
         ? 'Orçamento: ${CurrencyFormatter.format(budgetVal)}'
         : 'Orçamento: R\$ 0,00';
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         height: MediaQuery.of(context).size.height * 0.87,
         decoration: const BoxDecoration(
@@ -371,7 +419,8 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                     const SizedBox(height: 4),
                     Text(
                       'Personalize o ícone, nome, cor e orçamento.',
-                      style: TextStyle(color: colors.textSecondary, fontSize: 13),
+                      style:
+                          TextStyle(color: colors.textSecondary, fontSize: 13),
                     ),
                     const SizedBox(height: 16),
                     // Preview card
@@ -429,7 +478,8 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                     // Name field
                     Text(
                       'Nome',
-                      style: TextStyle(color: colors.textSecondary, fontSize: 13),
+                      style:
+                          TextStyle(color: colors.textSecondary, fontSize: 13),
                     ),
                     const SizedBox(height: 8),
                     TextField(
@@ -462,7 +512,8 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                     // Icon grid
                     Text(
                       'Ícone',
-                      style: TextStyle(color: colors.textSecondary, fontSize: 13),
+                      style:
+                          TextStyle(color: colors.textSecondary, fontSize: 13),
                     ),
                     const SizedBox(height: 10),
                     Wrap(
@@ -501,7 +552,8 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                     // Color picker
                     Text(
                       'Cor da tag',
-                      style: TextStyle(color: colors.textSecondary, fontSize: 13),
+                      style:
+                          TextStyle(color: colors.textSecondary, fontSize: 13),
                     ),
                     const SizedBox(height: 10),
                     Wrap(
@@ -538,7 +590,8 @@ class _NewCategorySheetState extends State<_NewCategorySheet> {
                     // Budget field
                     Text(
                       'Orçamento mensal',
-                      style: TextStyle(color: colors.textSecondary, fontSize: 13),
+                      style:
+                          TextStyle(color: colors.textSecondary, fontSize: 13),
                     ),
                     const SizedBox(height: 8),
                     TextField(

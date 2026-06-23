@@ -467,11 +467,7 @@ export class BrapiQuotationService implements AssetQuotationService {
       if (params.search) url.searchParams.set("search", params.search);
 
       const data = await this.fetchJson<BrapiFiiListResponse>(url);
-      const tickers = (data.fiis ?? [])
-        .map((fii) => fii.symbol?.toUpperCase())
-        .filter((ticker): ticker is string => Boolean(ticker));
-      const quotes = await this.getQuotes(tickers);
-      const quoteMap = new Map(quotes.map((quote) => [quote.ticker, quote]));
+      const quoteMap = new Map<string, AssetQuote>();
       const items = (data.fiis ?? [])
         .map((fii) => this.toFiiMarketListing(fii, quoteMap))
         .filter((asset): asset is AssetMarketListing => asset !== null);

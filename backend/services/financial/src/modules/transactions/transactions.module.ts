@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { CardsModule } from "@cards/cards.module";
 import { TransactionService } from "@transactions/application/services/transaction.service";
 import { TransactionMessagingService } from "@transactions/application/services/transaction-messaging.service";
 import { TRANSACTION_REPOSITORY } from "@transactions/domain/repositories/transaction-repository.interface";
@@ -7,7 +8,7 @@ import { DrizzleTransactionRepository } from "@transactions/infra/repositories/d
 import { UsersModule } from "@users/users.module";
 
 @Module({
-  imports: [UsersModule],
+  imports: [UsersModule, CardsModule],
   controllers: [TransactionsController],
   providers: [
     TransactionService,

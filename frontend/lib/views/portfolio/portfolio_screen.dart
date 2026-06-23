@@ -22,13 +22,15 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final state = ref.watch(portfolioViewModelProvider);
+    final viewModel = ref.read(portfolioViewModelProvider.notifier);
     final isPositive = state.totalChange >= 0;
 
     return Scaffold(
       backgroundColor: colors.background,
       body: SafeArea(
         child: state.isLoading
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.primary))
             : ListView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                 children: [
@@ -36,28 +38,40 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Portfólio',
-                          style: TextStyle(color: colors.textPrimary, fontSize: 22, fontWeight: FontWeight.w700)),
+                          style: TextStyle(
+                              color: colors.textPrimary,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700)),
                       Icon(Icons.search, color: colors.textSecondary),
                     ],
                   ),
                   const SizedBox(height: 20),
                   Text(
                     CurrencyFormatter.format(state.totalValue),
-                    style: TextStyle(color: colors.textPrimary, fontSize: 32, fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                        color: colors.textPrimary,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: (isPositive ? AppColors.income : AppColors.expense).withOpacity(0.15),
+                          color: (isPositive
+                                  ? AppColors.income
+                                  : AppColors.expense)
+                              .withOpacity(0.15),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           '${isPositive ? '+' : ''}${state.totalChange.toStringAsFixed(2)}%',
                           style: TextStyle(
-                            color: isPositive ? AppColors.income : AppColors.expense,
+                            color: isPositive
+                                ? AppColors.income
+                                : AppColors.expense,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -75,20 +89,30 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                     children: _periods.asMap().entries.map((e) {
                       final isSelected = _selectedPeriod == e.key;
                       return GestureDetector(
-                        onTap: () => setState(() => _selectedPeriod = e.key),
+                        onTap: () {
+                          setState(() => _selectedPeriod = e.key);
+                          viewModel.load(range: e.value);
+                        },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: isSelected ? AppColors.primary.withOpacity(0.15) : Colors.transparent,
+                            color: isSelected
+                                ? AppColors.primary.withOpacity(0.15)
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             e.value,
                             style: TextStyle(
-                              color: isSelected ? AppColors.primary : colors.textSecondary,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : colors.textSecondary,
                               fontSize: 13,
-                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                              fontWeight: isSelected
+                                  ? FontWeight.w700
+                                  : FontWeight.w400,
                             ),
                           ),
                         ),
@@ -115,10 +139,13 @@ class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
                       border: Border.all(color: colors.border),
                     ),
                     child: Column(
-                      children: state.assets.map((a) => AssetRow(
-                        asset: a,
-                        onTap: () => context.push('/portfolio/ativo/${a.id}'),
-                      )).toList(),
+                      children: state.assets
+                          .map((a) => AssetRow(
+                                asset: a,
+                                onTap: () =>
+                                    context.push('/portfolio/ativo/${a.id}'),
+                              ))
+                          .toList(),
                     ),
                   ),
                 ],

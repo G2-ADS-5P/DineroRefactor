@@ -46,7 +46,8 @@ class CardsScreen extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                border:
+                    Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -56,7 +57,8 @@ class CardsScreen extends ConsumerWidget {
                       color: AppColors.primary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.account_balance_outlined, color: AppColors.primary, size: 20),
+                    child: const Icon(Icons.account_balance_outlined,
+                        color: AppColors.primary, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -70,7 +72,8 @@ class CardsScreen extends ConsumerWidget {
                               fontWeight: FontWeight.w600,
                             )),
                         Text('Importe automaticamente gastos dos seus bancos',
-                            style: TextStyle(color: colors.textSecondary, fontSize: 12)),
+                            style: TextStyle(
+                                color: colors.textSecondary, fontSize: 12)),
                       ],
                     ),
                   ),
@@ -87,7 +90,8 @@ class CardsScreen extends ConsumerWidget {
               separatorBuilder: (_, __) => const SizedBox(height: 14),
               itemBuilder: (_, i) => _CardItem(
                 card: state.cards[i],
-                onSimulate: () => _showSimulateDialog(context, ref, state.cards[i], colors),
+                onSimulate: () =>
+                    _showSimulateDialog(context, ref, state.cards[i], colors),
               ),
             ),
           ),
@@ -105,14 +109,18 @@ class CardsScreen extends ConsumerWidget {
     );
   }
 
-  void _showSimulateDialog(BuildContext context, WidgetRef ref, CardModel card, AppColors colors) {
+  void _showSimulateDialog(
+      BuildContext context, WidgetRef ref, CardModel card, AppColors colors) {
     final controller = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: colors.surface,
         title: Text('Simular gasto — ${card.name}',
-            style: TextStyle(color: colors.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
+            style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w600)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,7 +132,8 @@ class CardsScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             TextField(
               controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               autofocus: true,
               style: TextStyle(color: colors.textPrimary),
               decoration: InputDecoration(
@@ -139,7 +148,8 @@ class CardsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancelar', style: TextStyle(color: colors.textSecondary)),
+            child:
+                Text('Cancelar', style: TextStyle(color: colors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
@@ -149,21 +159,23 @@ class CardsScreen extends ConsumerWidget {
               if (value == null || value <= 0) return;
               Navigator.pop(ctx);
               await ref.read(financeFacadeProvider).registerExpense(
-                value: value,
-                currency: 'BRL',
-                categoryId: '',
-                description: 'Open Finance — ${card.name}',
-              );
+                    value: value,
+                    currency: 'BRL',
+                    categoryId: '',
+                    description: 'Open Finance — ${card.name}',
+                  );
               ref.read(dashboardViewModelProvider.notifier).refresh();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text('Gasto de ${CurrencyFormatter.format(value)} importado do ${card.name}'),
+                  content: Text(
+                      'Gasto de ${CurrencyFormatter.format(value)} importado do ${card.name}'),
                   backgroundColor: AppColors.primary,
                   duration: const Duration(seconds: 2),
                 ));
               }
             },
-            child: const Text('Confirmar', style: TextStyle(color: Colors.white)),
+            child:
+                const Text('Confirmar', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -214,20 +226,28 @@ class _CardItem extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.credit_card, color: Colors.white, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    card.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.credit_card,
+                        color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        card.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Text(
                 card.network,
                 style: TextStyle(
@@ -239,10 +259,28 @@ class _CardItem extends StatelessWidget {
               ),
             ],
           ),
+          if (card.isOpenFinance) ...[
+            const SizedBox(height: 6),
+            const Row(
+              children: [
+                Icon(Icons.account_balance, color: AppColors.primary, size: 12),
+                SizedBox(width: 4),
+                Text(
+                  'Open Finance',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 16),
           Text(
             '•••• •••• •••• ${card.lastFour}',
-            style: TextStyle(color: colors.textSecondary, fontSize: 14, letterSpacing: 2),
+            style: TextStyle(
+                color: colors.textSecondary, fontSize: 14, letterSpacing: 2),
           ),
           const SizedBox(height: 16),
           Row(
@@ -259,7 +297,10 @@ class _CardItem extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     CurrencyFormatter.format(card.currentBill),
-                    style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700),
                   ),
                 ],
               ),
@@ -267,11 +308,16 @@ class _CardItem extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('Limite', style: TextStyle(color: colors.textSecondary, fontSize: 12)),
+                    Text('Limite',
+                        style: TextStyle(
+                            color: colors.textSecondary, fontSize: 12)),
                     const SizedBox(height: 2),
                     Text(
                       CurrencyFormatter.format(card.creditLimit!),
-                      style: TextStyle(color: colors.textSecondary, fontSize: 13, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                          color: colors.textSecondary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -284,7 +330,8 @@ class _CardItem extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progress,
                 backgroundColor: Colors.white.withValues(alpha: 0.12),
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                valueColor:
+                    const AlwaysStoppedAnimation<Color>(AppColors.primary),
                 minHeight: 4,
               ),
             ),
@@ -314,7 +361,10 @@ class _CardItem extends StatelessWidget {
                   SizedBox(width: 6),
                   Text(
                     'Simular gasto Open Finance',
-                    style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
@@ -341,14 +391,14 @@ class _OpenFinanceSheetState extends ConsumerState<_OpenFinanceSheet> {
   List<CardModel> _foundCards = [];
 
   static const _banks = [
-    {'name': 'Nubank',          'icon': Icons.credit_card},
-    {'name': 'Itaú',            'icon': Icons.account_balance},
-    {'name': 'Bradesco',        'icon': Icons.account_balance},
+    {'name': 'Nubank', 'icon': Icons.credit_card},
+    {'name': 'Itaú', 'icon': Icons.account_balance},
+    {'name': 'Bradesco', 'icon': Icons.account_balance},
     {'name': 'Banco do Brasil', 'icon': Icons.account_balance},
-    {'name': 'Santander',       'icon': Icons.account_balance},
-    {'name': 'Inter',           'icon': Icons.credit_card},
-    {'name': 'C6 Bank',         'icon': Icons.credit_card},
-    {'name': 'XP Investimentos','icon': Icons.trending_up},
+    {'name': 'Santander', 'icon': Icons.account_balance},
+    {'name': 'Inter', 'icon': Icons.credit_card},
+    {'name': 'C6 Bank', 'icon': Icons.credit_card},
+    {'name': 'XP Investimentos', 'icon': Icons.trending_up},
   ];
 
   Future<void> _connectTo(String bankName) async {
@@ -372,7 +422,8 @@ class _OpenFinanceSheetState extends ConsumerState<_OpenFinanceSheet> {
     ref.read(cardsViewModelProvider.notifier).importCards(_foundCards);
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('${_foundCards.length} cartões importados do $_selectedBank'),
+      content:
+          Text('${_foundCards.length} cartões importados do $_selectedBank'),
       backgroundColor: AppColors.primary,
       duration: const Duration(seconds: 2),
     ));
@@ -393,8 +444,10 @@ class _OpenFinanceSheetState extends ConsumerState<_OpenFinanceSheet> {
         children: [
           Center(
             child: Container(
-              width: 40, height: 4,
-              decoration: BoxDecoration(color: colors.border, borderRadius: BorderRadius.circular(2)),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                  color: colors.border, borderRadius: BorderRadius.circular(2)),
             ),
           ),
           const SizedBox(height: 20),
@@ -406,7 +459,8 @@ class _OpenFinanceSheetState extends ConsumerState<_OpenFinanceSheet> {
                   color: AppColors.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.account_balance_outlined, color: AppColors.primary, size: 22),
+                child: const Icon(Icons.account_balance_outlined,
+                    color: AppColors.primary, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -414,14 +468,18 @@ class _OpenFinanceSheetState extends ConsumerState<_OpenFinanceSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Open Finance',
-                        style: TextStyle(color: colors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
+                        style: TextStyle(
+                            color: colors.textPrimary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700)),
                     Text(
                       _phase == _SheetPhase.select
                           ? 'Selecione seu banco para conectar'
                           : _phase == _SheetPhase.loading
                               ? 'Conectando com $_selectedBank...'
                               : '${_foundCards.length} cartões encontrados',
-                      style: TextStyle(color: colors.textSecondary, fontSize: 13),
+                      style:
+                          TextStyle(color: colors.textSecondary, fontSize: 13),
                     ),
                   ],
                 ),
@@ -429,12 +487,14 @@ class _OpenFinanceSheetState extends ConsumerState<_OpenFinanceSheet> {
             ],
           ),
           const SizedBox(height: 24),
-
           if (_phase == _SheetPhase.select)
             Expanded(
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 2.5,
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 2.5,
                 ),
                 itemCount: _banks.length,
                 itemBuilder: (_, i) {
@@ -450,10 +510,14 @@ class _OpenFinanceSheetState extends ConsumerState<_OpenFinanceSheet> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(bank['icon'] as IconData, color: AppColors.primary, size: 18),
+                          Icon(bank['icon'] as IconData,
+                              color: AppColors.primary, size: 18),
                           const SizedBox(width: 8),
                           Text(bank['name'] as String,
-                              style: TextStyle(color: colors.textPrimary, fontSize: 13, fontWeight: FontWeight.w500)),
+                              style: TextStyle(
+                                  color: colors.textPrimary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500)),
                         ],
                       ),
                     ),
@@ -467,26 +531,41 @@ class _OpenFinanceSheetState extends ConsumerState<_OpenFinanceSheet> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(
-                    width: 56, height: 56,
-                    child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 3),
+                    width: 56,
+                    height: 56,
+                    child: CircularProgressIndicator(
+                        color: AppColors.primary, strokeWidth: 3),
                   ),
                   const SizedBox(height: 24),
                   Text('Autenticando com $_selectedBank',
-                      style: TextStyle(color: colors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
+                      style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Text('Buscando contas e cartões...',
-                      style: TextStyle(color: colors.textSecondary, fontSize: 13)),
+                      style:
+                          TextStyle(color: colors.textSecondary, fontSize: 13)),
                   const SizedBox(height: 28),
-                  ...['Autenticação OAuth', 'Buscando contas', 'Carregando transações'].map(
+                  ...[
+                    'Autenticação OAuth',
+                    'Buscando contas',
+                    'Carregando transações'
+                  ].map(
                     (step) => Padding(
                       padding: const EdgeInsets.symmetric(vertical: 5),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const SizedBox(width: 14, height: 14,
-                              child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2)),
+                          const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                  color: AppColors.primary, strokeWidth: 2)),
                           const SizedBox(width: 10),
-                          Text(step, style: TextStyle(color: colors.textMuted, fontSize: 12)),
+                          Text(step,
+                              style: TextStyle(
+                                  color: colors.textMuted, fontSize: 12)),
                         ],
                       ),
                     ),
@@ -501,15 +580,22 @@ class _OpenFinanceSheetState extends ConsumerState<_OpenFinanceSheet> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.check_circle, color: AppColors.primary, size: 18),
+                      const Icon(Icons.check_circle,
+                          color: AppColors.primary, size: 18),
                       const SizedBox(width: 8),
                       Text('Conexão estabelecida com $_selectedBank',
-                          style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w600)),
+                          style: const TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600)),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Text('Cartões encontrados',
-                      style: TextStyle(color: colors.textSecondary, fontSize: 12, fontWeight: FontWeight.w500)),
+                      style: TextStyle(
+                          color: colors.textSecondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500)),
                   const SizedBox(height: 10),
                   Expanded(
                     child: ListView.separated(
@@ -522,7 +608,8 @@ class _OpenFinanceSheetState extends ConsumerState<_OpenFinanceSheet> {
                           decoration: BoxDecoration(
                             color: colors.surfaceAlt,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: card.color.withValues(alpha: 0.4)),
+                            border: Border.all(
+                                color: card.color.withValues(alpha: 0.4)),
                           ),
                           child: Row(
                             children: [
@@ -533,8 +620,11 @@ class _OpenFinanceSheetState extends ConsumerState<_OpenFinanceSheet> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Icon(
-                                  card.isDebit ? Icons.account_balance_wallet : Icons.credit_card,
-                                  color: card.color, size: 18,
+                                  card.isDebit
+                                      ? Icons.account_balance_wallet
+                                      : Icons.credit_card,
+                                  color: card.color,
+                                  size: 18,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -544,15 +634,20 @@ class _OpenFinanceSheetState extends ConsumerState<_OpenFinanceSheet> {
                                   children: [
                                     Text(card.name,
                                         style: TextStyle(
-                                            color: colors.textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
+                                            color: colors.textPrimary,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600)),
                                     Text(
                                       '•••• ${card.lastFour}  ·  ${card.network}  ·  ${card.isDebit ? 'Débito' : 'Crédito'}',
-                                      style: TextStyle(color: colors.textSecondary, fontSize: 11),
+                                      style: TextStyle(
+                                          color: colors.textSecondary,
+                                          fontSize: 11),
                                     ),
                                   ],
                                 ),
                               ),
-                              const Icon(Icons.check_circle, color: AppColors.primary, size: 18),
+                              const Icon(Icons.check_circle,
+                                  color: AppColors.primary, size: 18),
                             ],
                           ),
                         );
@@ -567,11 +662,15 @@ class _OpenFinanceSheetState extends ConsumerState<_OpenFinanceSheet> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       child: Text(
                         'Importar ${_foundCards.length} cartões',
-                        style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600),
                       ),
                     ),
                   ),
